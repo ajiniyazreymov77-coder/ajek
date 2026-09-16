@@ -1,201 +1,1448 @@
-                                 Apache License
-                           Version 2.0, January 2004
-                        http://www.apache.org/licenses/
 
-   TERMS AND CONDITIONS FOR USE, REPRODUCTION, AND DISTRIBUTION
 
-   1. Definitions.
+Qalam · HTML
+<!DOCTYPE html>
+<html lang="kaa">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#FAF6EC">
+<title>Qalam — AI járdeminde islew</title>
+<!-- PWA: lets Android + iPhone users "Add to Home Screen" so Qalam opens like an app icon.
+     manifest.json / sw.js / icon-192.png / icon-512.png must be uploaded next to this file. -->
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Qalam">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800;900&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--paper:#FAF6EC;--ink:#20233D;--soft:#565A78;--line:#D9D2BE;--hl:#F5D949;--coral:#FF6A55;--mint:#4FB0A5;--purple:#7a5cc7;--gold:#D4AF37;--gold-light:#FFD700;--st:env(safe-area-inset-top,0px);--sb:env(safe-area-inset-bottom,0px)}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{overscroll-behavior:none;-webkit-font-smoothing:antialiased}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:Inter,system-ui,sans-serif;font-size:16px;line-height:1.5;overflow-x:hidden;position:relative}
+h1,h2,h3{font-family:Sora,system-ui,sans-serif;margin:0;letter-spacing:-.03em}
+button{font-family:inherit;cursor:pointer;border:0;background:none;color:inherit}
+input,textarea,select{font-family:inherit;font-size:16px}
+ 
+#bgLayer{position:fixed;inset:0;z-index:0;overflow:hidden;pointer-events:none}
+.bg-orb{position:absolute;border-radius:50%;filter:blur(60px);opacity:.55;animation:orbFloat 12s ease-in-out infinite}
+.bg-orb.o1{width:400px;height:400px;background:radial-gradient(circle,#F5D949,transparent 70%);left:-100px;top:-80px}
+.bg-orb.o2{width:500px;height:500px;background:radial-gradient(circle,#FF6A55,transparent 70%);right:-150px;top:20%;animation-delay:-3s}
+.bg-orb.o3{width:450px;height:450px;background:radial-gradient(circle,#4FB0A5,transparent 70%);left:-100px;bottom:-150px;animation-delay:-6s}
+.bg-orb.o4{width:350px;height:350px;background:radial-gradient(circle,#7a5cc7,transparent 70%);right:-50px;bottom:-100px;animation-delay:-9s}
+@keyframes orbFloat{0%,100%{transform:translate(0,0) scale(1)}33%{transform:translate(80px,-60px) scale(1.15)}66%{transform:translate(-60px,80px) scale(.9)}}
+.bg-dots{position:absolute;inset:0;opacity:.06;background-image:radial-gradient(circle,var(--ink) 1px,transparent 1px);background-size:24px 24px;animation:dotsMove 40s linear infinite}
+@keyframes dotsMove{0%{background-position:0 0}100%{background-position:240px 240px}}
+ 
+.qlogo{position:relative;width:56px;height:56px;display:grid;place-items:center;border-radius:16px;background:var(--hl);border:2px solid var(--ink);box-shadow:5px 5px 0 var(--ink);animation:qBob 2.4s infinite}
+.qlogo:before{content:"";position:absolute;width:22px;height:30px;background:var(--ink);clip-path:polygon(50% 0,72% 63%,100% 100%,50% 82%,0 100%,28% 63%);transform:rotate(35deg);animation:qPen 2.4s infinite}
+.qlogo:after{content:"";position:absolute;inset:-8px;border-radius:22px;border:2px solid var(--hl);animation:qRing 2.4s infinite;pointer-events:none}
+@keyframes qBob{0%,100%{transform:rotate(-6deg)}50%{transform:rotate(6deg) translateY(-5px)}}
+@keyframes qPen{0%,100%{transform:rotate(35deg)}50%{transform:rotate(45deg)}}
+@keyframes qRing{0%{transform:scale(.85);opacity:.9}100%{transform:scale(1.5);opacity:0}}
+.qlogo.sm{width:40px;height:40px;border-radius:12px;box-shadow:4px 4px 0 var(--ink)}
+.qlogo.sm:before{width:16px;height:22px}
+.qlogo.xs{width:36px;height:36px;border-radius:11px;box-shadow:3px 3px 0 var(--ink)}
+.qlogo.xs:before{width:14px;height:20px}
+ 
+#app{display:block;min-height:100dvh;position:relative;z-index:1}
+.atop{position:sticky;top:0;z-index:30;padding:calc(var(--st) + 12px) 14px 12px;display:flex;align-items:center;justify-content:space-between;background:rgba(250,246,236,.9);backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
+.abrand{display:flex;align-items:center;gap:9px}
+.abrand-name{font:900 20px Sora;letter-spacing:-.06em}
+.abrand-name i{font-style:normal;color:var(--coral)}
+.aactions{display:flex;gap:6px;align-items:center}
+.chip{padding:8px 12px;border:1px solid var(--line);border-radius:999px;background:rgba(255,255,255,.75);font:800 10.5px Inter;color:var(--soft)}
+.chip.vip{background:linear-gradient(135deg,#FFD700,#D4AF37);color:#3d2b00;border-color:#D4AF37;box-shadow:0 4px 15px rgba(212,175,55,.3)}
+.ibtn{width:40px;height:40px;display:grid;place-items:center;border:1px solid var(--line);border-radius:12px;background:#fffdf7;font-size:17px;transition:.2s}
+.ibtn:active{transform:scale(.92)}
+.abody{padding:16px 14px calc(var(--sb) + 100px)}
+ 
+/* VIP BANNER */
+.vip-banner{margin-bottom:14px;padding:16px 18px;border-radius:20px;background:linear-gradient(135deg,#FFD700 0%,#D4AF37 40%,#B8860B 100%);position:relative;overflow:hidden;border:2px solid #8B6914;box-shadow:0 8px 30px rgba(212,175,55,.4)}
+.vip-banner:before{content:"";position:absolute;inset:0;background:linear-gradient(110deg,transparent 30%,rgba(255,255,255,.6) 50%,transparent 70%);transform:translateX(-100%);animation:vipShine 3.5s ease-in-out infinite}
+@keyframes vipShine{0%,50%{transform:translateX(-100%)}80%,100%{transform:translateX(100%)}}
+.vip-banner-in{position:relative;z-index:1;display:flex;align-items:center;gap:12px}
+.vip-crown{width:52px;height:52px;display:grid;place-items:center;background:#3d2b00;border-radius:14px;font-size:26px;box-shadow:0 4px 15px rgba(0,0,0,.3);flex-shrink:0;animation:crownFloat 2.5s ease-in-out infinite}
+@keyframes crownFloat{0%,100%{transform:translateY(0) rotate(-3deg)}50%{transform:translateY(-3px) rotate(3deg)}}
+.vip-banner-in b{display:block;font:900 15px Sora;color:#3d2b00;text-shadow:0 1px 0 rgba(255,255,255,.4)}
+.vip-banner-in small{display:block;font:700 11px Inter;color:#5a4000;margin-top:2px}
+ 
+.langbar{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap;justify-content:center}
+.lang-btn{padding:7px 12px;border:1px solid var(--line);border-radius:999px;background:rgba(255,255,255,.75);font:800 10.5px Inter;color:var(--soft);letter-spacing:.04em}
+.lang-btn.active{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+ 
+.hero{padding:18px;border:1px solid var(--line);border-radius:22px;background:linear-gradient(160deg,rgba(255,253,247,.95),rgba(255,246,216,.9));backdrop-filter:blur(8px);position:relative;overflow:hidden}
+.hero:before{content:"";position:absolute;width:200px;height:200px;border-radius:50%;background:radial-gradient(circle,rgba(245,217,73,.3),transparent 70%);top:-80px;right:-80px}
+.hero-kick{display:inline-flex;align-items:center;gap:8px;font:800 10px Inter;letter-spacing:.18em;text-transform:uppercase;color:var(--soft);margin-bottom:12px;position:relative;z-index:1}
+.hero-kick:before{content:"";width:22px;height:3px;background:var(--hl);border-radius:99px}
+.hero h1{font:900 clamp(24px,7vw,32px)/1.05 Sora;letter-spacing:-.06em;margin:0 0 10px;position:relative;z-index:1}
+.hero h1 .y{position:relative;display:inline-block;z-index:1}
+.hero h1 .y:after{content:"";position:absolute;left:-3%;right:-5%;bottom:3px;height:12px;background:var(--hl);z-index:-1;border-radius:6px;transform:rotate(-1.5deg)}
+.hero p{color:var(--soft);font-size:13.5px;line-height:1.6;margin:0 0 16px;position:relative;z-index:1}
+.hero-stats{display:flex;gap:8px;position:relative;z-index:1}
+.hs{flex:1;padding:10px;border:1px solid var(--line);border-radius:12px;background:rgba(255,255,255,.7);text-align:center}
+.hs b{font:900 18px Sora;display:block;color:var(--ink)}
+.hs span{font:700 9px Inter;letter-spacing:.08em;text-transform:uppercase;color:var(--soft);margin-top:2px;display:block}
+ 
+.sect-title{font:900 16px Sora;margin:20px 0 10px;letter-spacing:-.04em;display:flex;align-items:center;gap:8px}
+.sect-title:before{content:"";width:4px;height:16px;background:var(--hl);border-radius:99px}
+ 
+.cards{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.card{padding:16px 14px;border:1px solid var(--line);border-radius:18px;background:rgba(255,253,247,.9);min-height:120px;display:flex;flex-direction:column;justify-content:space-between;cursor:pointer;transition:.25s cubic-bezier(.2,.8,.2,1);position:relative;overflow:hidden;backdrop-filter:blur(8px)}
+.card:active{transform:scale(.95) rotate(-1deg)}
+.card:before{content:"";position:absolute;inset:0;background:linear-gradient(115deg,transparent 40%,rgba(255,255,255,.5) 50%,transparent 60%);transform:translateX(-120%);transition:.6s}
+.card:hover:before,.card:active:before{transform:translateX(120%)}
+.card-ic{width:44px;height:44px;display:grid;place-items:center;border-radius:13px;font-size:22px;background:var(--hl);color:var(--ink);box-shadow:3px 3px 0 var(--ink);margin-bottom:10px;animation:cardIcon 2.6s ease-in-out infinite}
+@keyframes cardIcon{0%,100%{transform:translateY(0) rotate(0)}50%{transform:translateY(-4px) rotate(-4deg)}}
+.card.c1 .card-ic{background:#FFE3DD;color:var(--coral);box-shadow:3px 3px 0 var(--coral);animation-delay:.2s}
+.card.c2 .card-ic{background:#E4F3F0;color:var(--mint);box-shadow:3px 3px 0 var(--mint);animation-delay:.4s}
+.card.c3 .card-ic{background:#EFE7FB;color:var(--purple);box-shadow:3px 3px 0 var(--purple);animation-delay:.6s}
+.card b{font:800 13px Sora;display:block;letter-spacing:-.02em}
+.card small{color:var(--soft);font-size:10.5px;margin-top:3px;display:block;line-height:1.4}
+ 
+.acard{padding:18px;border:1px solid var(--line);border-radius:22px;background:linear-gradient(160deg,rgba(255,253,247,.95),rgba(255,246,216,.9));backdrop-filter:blur(8px);margin-top:14px}
+.ahero{display:flex;align-items:center;gap:12px;margin-bottom:14px;padding:12px;border:1px solid var(--line);border-radius:16px;background:rgba(255,255,255,.85)}
+.aorbit{width:44px;height:44px;display:grid;place-items:center;background:var(--hl);border-radius:14px;font-size:21px;box-shadow:4px 4px 0 var(--ink);flex-shrink:0;animation:aBob 2.2s ease-in-out infinite}
+@keyframes aBob{0%,100%{transform:rotate(-6deg)}50%{transform:rotate(7deg) translateY(-5px)}}
+.ahero b{font:900 14px Sora;display:block}
+.ahero small{color:var(--soft);font-size:10.5px;display:block;margin-top:3px}
+.acard h3{font:900 20px Sora;margin:0 0 12px;letter-spacing:-.04em}
+.acard label{display:block;font:800 10.5px Inter;letter-spacing:.1em;text-transform:uppercase;color:var(--soft);margin-bottom:8px}
+.acard textarea{width:100%;min-height:120px;padding:14px;border:2px solid var(--line);border-radius:16px;font:500 15px Inter;background:#fffdf7;color:var(--ink);resize:vertical}
+.acard textarea:focus{outline:none;border-color:var(--ink);box-shadow:0 0 0 4px rgba(245,217,73,.25)}
+.acard select{width:100%;padding:14px;border:2px solid var(--line);border-radius:14px;font:600 14px Inter;background:#fffdf7;color:var(--ink);margin-top:10px}
+.acard input[type=text],.acard input[type=email],.acard input[type=password]{width:100%;padding:14px;border:2px solid var(--line);border-radius:16px;font:500 15px Inter;background:#fffdf7;color:var(--ink);margin-top:10px}
+.acard input:focus{outline:none;border-color:var(--ink);box-shadow:0 0 0 4px rgba(245,217,73,.25)}
+.arun{width:100%;min-height:54px;margin-top:12px;padding:15px;background:var(--ink);color:var(--paper);border-radius:15px;font:800 14.5px Sora;box-shadow:5px 5px 0 var(--hl);position:relative;overflow:hidden;transition:.12s}
+.arun:active{transform:translate(2px,2px);box-shadow:2px 2px 0 var(--hl)}
+.arun:before{content:"";position:absolute;inset:0;background:linear-gradient(110deg,transparent 38%,rgba(245,217,73,.4) 50%,transparent 62%);transform:translateX(-120%);animation:bSw 3s ease-in-out infinite}
+@keyframes bSw{0%,55%{transform:translateX(-120%)}80%,100%{transform:translateX(120%)}}
+.arun:disabled{opacity:.55;cursor:not-allowed}
+ 
+.authtabs{display:flex;gap:8px;margin-bottom:14px}
+.authtabs button{flex:1;padding:12px;border-radius:14px;font:800 12.5px Sora;border:2px solid var(--ink);background:transparent;transition:.15s}
+.authtabs button.active{background:var(--ink);color:var(--paper)}
+.autherr{padding:10px 12px;border-radius:12px;background:#FFE3DD;color:#c0392b;font-size:12px;margin-top:12px;display:none;font-weight:700}
+.autherr.show{display:block}
+.authswitch{text-align:center;margin-top:14px;font-size:12.5px;color:var(--soft)}
+.authswitch b{color:var(--ink);cursor:pointer;text-decoration:underline}
+ 
+.refbox{margin-top:16px;padding:16px;border:1px solid var(--line);border-radius:18px;background:linear-gradient(135deg,rgba(255,253,247,.95),rgba(255,246,216,.9))}
+.refbox b{font:900 13px Sora;display:block;margin-bottom:6px}
+.reflink{padding:10px 12px;border:1px dashed var(--ink);border-radius:10px;background:#fff;font:600 11px monospace;word-break:break-all;margin:8px 0;color:var(--ink);text-align:center}
+.refbtns{display:flex;gap:8px;margin-top:8px}
+.refbtns button{flex:1;padding:11px;border-radius:10px;font:800 11px Inter;border:1.5px solid var(--ink);transition:.15s}
+.refbtns .sh{background:var(--ink);color:var(--paper)}
+.refbtns button:active{transform:scale(.95)}
+ 
+.cbar{margin-top:16px;padding:14px 16px;border:1px solid var(--line);border-radius:18px;background:linear-gradient(135deg,rgba(255,253,247,.95),rgba(255,246,216,.9))}
+.crow{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:10px}
+.crow b{font:900 13px Sora}
+.cnum{font:900 22px Sora}
+.ctrack{height:8px;background:#e8e1cf;border-radius:99px;overflow:hidden}
+.cfill{height:100%;background:linear-gradient(90deg,var(--ink),var(--coral));border-radius:99px;transition:width .8s}
+.chint{font-size:10.5px;color:var(--soft);margin-top:8px}
+ 
+.ai-loading{display:flex;flex-direction:column;align-items:center;padding:40px 20px;gap:14px;background:linear-gradient(135deg,rgba(255,253,247,.95),rgba(255,246,216,.9));border-radius:18px;margin-top:14px}
+.ai-orb{position:relative;width:70px;height:70px;display:grid;place-items:center}
+.ai-orb:before,.ai-orb:after{content:"";position:absolute;inset:0;border-radius:50%;border:3px solid transparent;border-top-color:var(--hl);animation:spin 1.5s linear infinite}
+.ai-orb:after{border-top-color:var(--coral);inset:10px;animation-duration:2s;animation-direction:reverse}
+.ai-inner{width:36px;height:36px;border-radius:50%;background:var(--ink);color:var(--hl);display:grid;place-items:center;font:900 20px Sora}
+@keyframes spin{to{transform:rotate(360deg)}}
+.ai-loading b{font:900 14px Sora}
+.ai-loading small{color:var(--soft);font-size:12px}
+.dots{display:flex;gap:6px}
+.dots span{width:8px;height:8px;border-radius:50%;background:var(--ink);animation:db 1.4s infinite}
+.dots span:nth-child(2){animation-delay:.15s;background:var(--coral)}
+.dots span:nth-child(3){animation-delay:.3s;background:var(--mint)}
+@keyframes db{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-10px)}}
+ 
+.slides{margin-top:16px;padding:14px;border:1px solid var(--line);border-radius:18px;background:rgba(255,253,247,.9)}
+.notice{padding:12px 14px;border-radius:14px;background:#E4F3F0;border:1px solid var(--line);margin-bottom:12px;font-size:12.5px}
+.notice.err{background:#FFE3DD;color:#c0392b;font-family:monospace;font-size:11px;word-break:break-all}
+.sgrid{display:grid;gap:12px}
+.slide{padding:18px;border-radius:18px;background:var(--ink);color:var(--paper);animation:sIn .4s cubic-bezier(.2,.8,.2,1) both}
+.slide:nth-child(2n){background:#fff6d8;color:var(--ink)}
+.slide:nth-child(3n){background:#e4f3f0;color:var(--ink)}
+.slide:nth-child(4n){background:#ffe3dd;color:var(--ink)}
+.slide:nth-child(5n){background:#efe7fb;color:var(--ink)}
+@keyframes sIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+.slide .sn{font-size:10.5px;font-weight:800;letter-spacing:.12em;opacity:.72}
+.slide h3{font:900 18px Sora;margin:10px 0 8px;color:inherit}
+.slide p{font-size:12.5px;line-height:1.55;opacity:.85;margin:0;white-space:pre-wrap}
+.rbox{margin-top:14px;padding:16px;border-radius:16px;background:var(--ink);color:var(--paper);white-space:pre-wrap;font-size:13px;line-height:1.7}
+ 
+/* EXPORT BUTTONS */
+.export-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:14px}
+.export-row button{padding:14px 8px;border-radius:14px;font:800 11.5px Sora;border:2px solid var(--ink);background:transparent;display:flex;flex-direction:column;align-items:center;gap:4px;transition:.15s}
+.export-row button .ei{font-size:20px}
+.export-row button.prim{background:var(--ink);color:var(--paper)}
+.export-row button:active{transform:scale(.95)}
+ 
+/* PREMIUM PLANS */
+.plan{padding:20px 18px;border:2px solid var(--line);border-radius:20px;background:rgba(255,253,247,.9);margin-top:12px;position:relative;overflow:hidden;backdrop-filter:blur(8px)}
+.plan.featured{border-color:var(--hl);background:linear-gradient(160deg,rgba(255,253,247,.95),rgba(255,246,216,.9))}
+.plan.featured:before{content:"⭐ TAVSIYA";position:absolute;top:12px;right:-30px;background:var(--hl);color:var(--ink);font:900 9px Sora;padding:5px 35px;transform:rotate(45deg);letter-spacing:.1em}
+.plan-name{font:900 15px Sora;color:var(--coral);letter-spacing:-.02em}
+.plan-price{font:900 30px Sora;margin:6px 0 2px;letter-spacing:-.05em}
+.plan-period{font:700 11px Inter;color:var(--soft);letter-spacing:.06em}
+.plan-features{margin:14px 0;display:grid;gap:6px}
+.pf{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--ink)}
+.pf:before{content:"✓";display:grid;place-items:center;width:16px;height:16px;background:var(--mint);color:#fff;border-radius:50%;font:900 10px Sora;flex-shrink:0}
+.pf.no:before{content:"✕";background:#ccc}
+.pf.no{color:var(--soft);text-decoration:line-through;opacity:.7}
+.plan-cta{width:100%;padding:14px;border-radius:14px;font:800 13.5px Sora;background:var(--ink);color:var(--paper);box-shadow:4px 4px 0 var(--hl);transition:.12s}
+.plan-cta:active{transform:translate(2px,2px);box-shadow:2px 2px 0 var(--hl)}
+ 
+/* PROFILE */
+.ph{display:flex;flex-direction:column;align-items:center;padding:20px;margin-bottom:8px;background:linear-gradient(160deg,rgba(255,253,247,.95),rgba(255,246,216,.9));border:1px solid var(--line);border-radius:22px}
+.ph.vip{background:linear-gradient(160deg,#FFD700,#D4AF37 50%,#B8860B);border-color:#8B6914}
+.pa{width:100px;height:100px;border-radius:50%;background:var(--ink);display:grid;place-items:center;border:4px solid var(--hl);box-shadow:0 8px 30px rgba(32,35,61,.2);position:relative}
+.ph.vip .pa{border-color:#3d2b00;background:#3d2b00}
+.pa .in{font:900 42px Sora;color:var(--hl)}
+.ph.vip .pa .in{color:#FFD700}
+.pa .cr{position:absolute;top:-12px;font-size:26px;left:50%;transform:translateX(-50%)}
+.pn{font:900 22px Sora;margin-top:14px}
+.ph.vip .pn{color:#3d2b00}
+.pr{font:800 10px Inter;letter-spacing:.14em;text-transform:uppercase;color:var(--soft);margin-top:4px}
+.ph.vip .pr{color:#5a4000}
+.pe{font-size:12px;color:var(--soft);margin-top:8px}
+.ph.vip .pe{color:#5a4000}
+ 
+.sgrid2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+.sc{padding:16px;border:1px solid var(--line);border-radius:16px;background:rgba(255,253,247,.9)}
+.sc span{font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--soft);font-weight:700;display:block}
+.sc b{font:900 18px Sora;display:block;margin-top:4px}
+.wst{font:900 22px Sora;margin:0 0 6px}
+.wss{color:var(--soft);font-size:13px;margin:0 0 16px}
+ 
+.ur{display:grid;gap:8px;padding:12px;border:1px solid var(--line);border-radius:14px;background:rgba(255,253,247,.9);margin-top:8px}
+.um{display:flex;align-items:center;gap:10px}
+.uav{width:38px;height:38px;display:grid;place-items:center;background:var(--ink);color:var(--hl);border-radius:11px;font:900 15px Sora;flex-shrink:0}
+.um b{font:800 13px Sora;display:block}
+.ue{font-size:11.5px;color:var(--soft);margin-top:2px}
+.umeta{display:flex;flex-wrap:wrap;gap:6px;font-size:10.5px;color:var(--soft);padding-left:48px}
+.rb{display:inline-block;font-size:9px;font-weight:900;padding:3px 8px;border-radius:99px;margin-top:4px}
+.sbtn{width:100%;padding:10px;border-radius:999px;font:800 12px Inter;border:1.5px solid var(--ink);background:transparent;margin-top:10px}
+.sbtn.ok{background:var(--ink);color:var(--paper)}
+.sbtn.no{background:#FFE3DD}
+.sbtn.vip-btn{background:linear-gradient(135deg,#FFD700,#D4AF37);color:#3d2b00;border-color:#8B6914}
+.ghost{padding:14px;border:2px solid var(--ink);border-radius:15px;font:800 13.5px Sora;background:transparent;width:100%;margin-top:8px}
+ 
+.tools{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px}
+.tile{padding:16px 14px;border:1px solid var(--line);border-radius:18px;background:rgba(255,253,247,.9);min-height:120px;display:flex;flex-direction:column;justify-content:space-between;cursor:pointer;backdrop-filter:blur(8px);transition:.2s;position:relative;overflow:hidden}
+.tile:active{transform:scale(.95)}
+.tile b{font:800 13px Sora;display:block;margin-top:auto}
+.tile small{color:var(--soft);font-size:10.5px;margin-top:3px;display:block}
+.t1{background:rgba(255,246,216,.9)}.t2{background:rgba(255,227,221,.9)}.t3{background:rgba(228,243,240,.9)}
+.t4{background:rgba(239,231,251,.9)}.t5{background:rgba(255,253,247,.9)}.t6{background:rgba(255,240,232,.9)}
+.tani{font-size:26px;margin-bottom:8px;animation:cardIcon 2.6s ease-in-out infinite}
+ 
+/* BOTTOM NAV with ANIMATION */
+.bnav{position:fixed;left:0;right:0;bottom:0;z-index:45;padding:8px 10px calc(var(--sb) + 8px);display:flex;justify-content:space-around;background:rgba(250,246,236,.96);backdrop-filter:blur(16px);border-top:1px solid var(--line)}
+.bnav-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 4px;border-radius:14px;color:var(--soft);font:700 10px Inter;transition:.25s;position:relative;overflow:hidden}
+.bnav-btn .bi{font-size:20px;line-height:1;transition:.25s}
+.bnav-btn.active{color:var(--ink);background:rgba(245,217,73,.3)}
+.bnav-btn.active .bi{transform:scale(1.15) translateY(-2px);animation:navPulse 1.5s ease-in-out infinite}
+.bnav-btn:active{transform:scale(.9)}
+.bnav-btn:before{content:"";position:absolute;inset:0;background:radial-gradient(circle at center,rgba(245,217,73,.4),transparent 70%);transform:scale(0);transition:.4s;border-radius:14px}
+.bnav-btn.active:before{transform:scale(1)}
+@keyframes navPulse{0%,100%{transform:scale(1.15) translateY(-2px)}50%{transform:scale(1.25) translateY(-4px)}}
+.bnav-btn:after{content:"";position:absolute;bottom:0;left:50%;transform:translateX(-50%) scaleX(0);width:20px;height:3px;background:var(--hl);border-radius:99px;transition:.3s}
+.bnav-btn.active:after{transform:translateX(-50%) scaleX(1)}
+ 
+/* MODAL */
+.modal{position:fixed;inset:0;z-index:9997;display:none;align-items:flex-end;justify-content:center;background:rgba(32,35,61,.55);backdrop-filter:blur(4px);padding:20px}
+.modal.show{display:flex;animation:fadeIn .25s both}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.mcard{width:100%;max-width:460px;background:var(--paper);border-radius:24px 24px 0 0;padding:24px 20px calc(var(--sb) + 20px);animation:mUp .4s cubic-bezier(.2,.8,.2,1);max-height:90dvh;overflow-y:auto}
+@keyframes mUp{from{transform:translateY(50px);opacity:0}to{transform:none;opacity:1}}
+.mcard h2{font:900 22px Sora;margin-bottom:8px}
+.mcard p{color:var(--soft);font-size:13.5px;line-height:1.6;margin:0 0 14px}
+.paybox{padding:16px;border:1.5px dashed var(--ink);border-radius:16px;background:#fffdf7;margin:14px 0;position:relative;overflow:hidden}
+.paybox:after{content:"";position:absolute;inset:0;background:linear-gradient(115deg,transparent,rgba(245,217,73,.2),transparent);transform:translateX(-100%);animation:paySweep 4s ease-in-out infinite}
+@keyframes paySweep{0%,60%{transform:translateX(-110%)}85%,100%{transform:translateX(110%)}}
+.paynum{font:900 20px Sora;letter-spacing:.04em;margin:6px 0}
+.payname{font-weight:800;font-size:13px}
+.tgr{display:flex;align-items:center;gap:10px;margin-top:12px;padding:12px;border:1px solid var(--line);border-radius:14px;background:linear-gradient(135deg,#fffdf7,#E4F3F0);position:relative;z-index:1}
+.tgic{width:38px;height:38px;flex:0 0 38px;display:grid;place-items:center;background:#229ED9;color:#fff;border-radius:11px;font-size:19px;box-shadow:2px 2px 0 var(--ink);animation:tgiPulse 2s ease-in-out infinite}
+@keyframes tgiPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08) rotate(-5deg)}}
+.tgi b{display:block;font:800 12px Sora}
+.tgi small{display:block;font-size:10.5px;color:var(--soft);margin-top:2px}
+.tgbtn{display:inline-flex;align-items:center;gap:8px;margin-top:12px;padding:13px 20px;background:var(--ink);color:var(--paper);border-radius:999px;font:800 12.5px Sora;text-decoration:none;box-shadow:3px 3px 0 var(--hl);position:relative;z-index:1}
+.mact{display:flex;flex-direction:column;gap:8px;margin-top:16px}
+ 
+.toast{position:fixed;left:16px;right:16px;bottom:calc(var(--sb) + 90px);z-index:9998;padding:13px 18px;border-radius:14px;background:var(--ink);color:var(--paper);font:700 13px Inter;text-align:center;transform:translateY(30px);opacity:0;pointer-events:none;transition:.35s}
+.toast.show{transform:none;opacity:1}
+.confetti{position:fixed;inset:0;pointer-events:none;z-index:99999;overflow:hidden}
+.confetti span{position:absolute;width:10px;height:10px;top:-20px;animation:cf 2.5s linear forwards}
+@keyframes cf{to{transform:translateY(105vh) rotate(720deg);opacity:0}}
+</style>
+</head>
+<body>
+ 
+<div id="bgLayer">
+  <div class="bg-orb o1"></div>
+  <div class="bg-orb o2"></div>
+  <div class="bg-orb o3"></div>
+  <div class="bg-orb o4"></div>
+  <div class="bg-dots"></div>
+</div>
+ 
+<div id="app">
+  <div class="atop">
+    <div class="abrand">
+      <div class="qlogo xs"></div>
+      <div class="abrand-name">Qalam<i>.</i></div>
+    </div>
+    <div class="aactions">
+      <div class="chip" id="chip">···</div>
+      <button class="ibtn" id="profileBtn" onclick="showProfile()">○</button>
+    </div>
+  </div>
+  <div class="abody" id="ws"></div>
+</div>
+ 
+<div class="bnav" id="bnav">
+  <button class="bnav-btn active" data-tab="agent" onclick="tab('agent')"><span class="bi">✦</span><span id="t_bn1">Agent</span></button>
+  <button class="bnav-btn" data-tab="tools" onclick="tab('tools')"><span class="bi">▦</span><span id="t_bn2">Qurallar</span></button>
+  <button class="bnav-btn" data-tab="history" onclick="tab('history')"><span class="bi">◫</span><span id="t_bn3">Tariyx</span></button>
+  <button class="bnav-btn" data-tab="premium" onclick="tab('premium')"><span class="bi">◆</span><span id="t_bn4">Premium</span></button>
+</div>
+ 
+<div class="toast" id="toast"></div>
+ 
+<div class="modal" id="modal">
+  <div class="mcard">
+    <h2 id="t_mTitle">Qalam PRO</h2>
+    <p id="t_mDesc">—</p>
+    <div class="paybox">
+      <b style="font-size:12px;color:var(--soft);letter-spacing:.08em;text-transform:uppercase" id="t_mPay">Tólem</b>
+      <div class="paynum">4067 0700 0933 9081</div>
+      <div class="payname">AJINIYAZ REYMOV</div>
+      <div class="tgr">
+        <div class="tgic">✈</div>
+        <div class="tgi"><b id="t_mChek">CHEKTI JIBERIW</b><small>@Qalamchek_bot</small></div>
+      </div>
+      <a class="tgbtn" href="https://t.me/Qalamchek_bot" target="_blank" id="t_mChekBtn">✈ CHEKTI JIBERIW</a>
+    </div>
+    <div class="mact">
+      <button class="arun" onclick="confirmPay()" id="t_mBtn1">—</button>
+      <button class="ghost" onclick="closeModal()" id="t_mBtn2">—</button>
+    </div>
+  </div>
+</div>
+ 
+<!-- Real file-export libraries (PDF + PPTX). Loaded once, cached by the browser after. -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js"></script>
+ 
+<script>
+/* ══════════════════════════════════════════════
+   QALAM V27 — real exports, real AI image, PWA install,
+   admin-editable API key, per-device login log
+   ══════════════════════════════════════════════ */
+ 
+/* SECURITY NOTE: this key lives in client-side JS, so anyone who opens
+   "view source" on this page can read and reuse it. That's fine for a
+   personal/demo project, but for a public app you should proxy Gemini
+   calls through your own backend so the key never reaches the browser. */
+const GEMINI_KEY_DEFAULT = 'AQ.Ab8RN6IVmgPf3XKOQvOdsjLUXLwQxRRFuOsLzAPDfsQlQC0KAw';
+const GEMINI_MODELS = ['gemini-flash-latest', 'gemini-3.5-flash', 'gemini-3.1-flash-lite'];
+const GEMINI_IMAGE_MODELS = ['gemini-2.5-flash-image', 'gemini-3.1-flash-image'];
+const GEMINI_BASE = 'https://generativelanguage.googleapis.com/v1beta/models/';
+/* The admin can change the API key any time from the Admin Panel (Settings),
+   without touching the code. It is stored in this browser's localStorage. */
+function getApiKey(){ try{ return localStorage.getItem('qalam_api_key') || GEMINI_KEY_DEFAULT; }catch(e){ return GEMINI_KEY_DEFAULT; } }
+function setApiKey(k){ try{ localStorage.setItem('qalam_api_key', k); }catch(e){} }
+const BOT = '@Qalamchek_bot';
+const BOT_URL = 'https://t.me/Qalamchek_bot';
+const FREE_CREDITS = 10;
+ 
+/* ADMIN — faqat usı bir ǵana akkaunt admin bola aladı */
+const ADMIN = {
+  id: 'ADMIN-001',
+  name: 'Ajiniyaz',
+  email: 'ajiniyazreymov77@gmail.com',
+  pass: 'ajek2008',
+  role: 'admin',
+  vip: true,
+  plan: 'VIP',
+  planName: 'VIP',
+  credits: 9999,
+  refCode: 'ADMIN',
+  createdText: new Date().toLocaleString('uz-UZ')
+};
+ 
+/* ═══════ TARJIMALAR — kaa, uz, en, ru ═══════ */
+const T = {
+  kaa:{
+    kick:"QALAM STUDIYA", hh1:"Qalam'ǵa <span class='y'>xosh kelipsiz</span>",
+    hlead:"AI járdeminde konspekt, slayd, referat hám infografika jaratamız.",
+    stat1:"Slayd",stat2:"Konspekt",stat3:"Limit",
+    sectCreate:"Jaratıw", sectTools:"Qurallar",
+    c1t:"Slayd",c1s:"AI 12 slayd", c2t:"Konspekt",c2s:"Tereń analiz",
+    c3t:"AI Súwret",c3s:"Vizual", c4t:"Referat",c4s:"Akademik",
+    bn1:"Agent",bn2:"Qurallar",bn3:"Tariyx",bn4:"Premium",
+    agentTitle:"Qalam siz benen isleydi.", agentSub:"Temanı kiritiń — AI jaratadı.",
+    topic:"Tema yamasa tapsırma", topicPh:"Mısalı: Fotosintez procesi...",
+    createBtn:"✦ AI benen jaratıw",
+    fSlides:"🎞 Prezentaciya (12 slayd)", fNotes:"📑 Konspekt",
+    fImage:"✺ AI Súwret", fReport:"📄 Referat", fInfo:"📊 Infografika",
+    limitTitle:"TEKIN LIMIT", limitSub:"Hár bir urınıw = 1 limit", vipLimit:"Sheksiz limit",
+    loading:"AI oylap atır...", wait:"5-10 sekund kútiń", done:"slayd jaratıldı",
+    error:"QÁTE", topicEmpty:"Temanı jazıń", noLimit:"Limitińiz tawsıldı. Premiumnan tarif satıp alıń.",
+    profile:"Profil", plan:"Tarif", limit:"Limit", created:"Jaratılǵan",
+    roleAdmin:"ADMIN", roleVip:"VIP", roleUser:"PAYDALANÍWSHÍ",
+    adminBtn:"Admin panel", adminTitle:"Admin Panel", adminSub:"Tek admin ushın kórinedi.",
+    users:"Paydalanıwshılar", logout:"Artqa",
+    vipPrices:"VIP baǵaları", weekly:"Háptelik", monthly:"Aylıq", yearly:"Jıllıq",
+    editPrices:"Baǵalardı ózgertiw", makeVip:"VIP qılıw", removeVip:"VIP alıp taslaw",
+    toolsTitle:"Qurallar", toolsSub:"Hár bir tapsırma ushın qural.",
+    tSlides:"Slayd", tSlidesSub:"AI 12 slayd",
+    tNotes:"Konspekt", tNotesSub:"Tereń", tImage:"AI Súwret", tImageSub:"Vizual",
+    tReport:"Referat", tReportSub:"Akademik", tInfo:"Infografika", tInfoSub:"Vizual",
+    tExport:"Eksport", tExportSub:"PDF · Word · PPTX",
+    historyTitle:"Tariyx", historySub:"Aqırǵı materiallar.",
+    empty:"Bos", emptyMsg:"Házirshe joq",
+    premiumTitle:"Premium", premiumSub:"Bul — tólem tarifleri, VIP status emes.",
+    payInfo:"Tólem maǵlıwmatı", payName:"AJINIYAZ REYMOV",
+    sendCheck:"CHEKTI JIBERIW", sendCheckBtn:"✈ CHEKTI JIBERIW",
+    mTitle:"Qalam PRO", mDesc:"Bul obuna limitińizdi kóbeytedi (VIP status bermeydi).",
+    mPay:"Tólem maǵlıwmatı", mChek:"CHEKTI JIBERIW", mChekBtn:"✈ CHEKTI JIBERIW",
+    mBtn1:"Tólegenimdi tastıyıqlayman", mBtn2:"Biykar etiw",
+    refTitle:"🎁 Doslarıńızdı shaqırıń", refSub:"Hár bir dos ushın +2 tegin limit",
+    share:"📤 Bólisiw", copy:"📋 Kóshirme",
+    subscribed:"Tarif aktivlestirildi: ", copied:"Kóshirildi ✓",
+    error_api:"AI qızmetine baylanıs orınlanbadı", error_json:"AI juwabın oqıw qátesi", aiLangName:"qaraqalpaq",
+    exportPDF:"PDF", exportWord:"Word", exportPPTX:"PPTX",
+    vipBanner:"👑 VIP STATUS", vipBannerSub:"Sheksiz limit · Barlıq funksiyalar",
+    planWeek:"Háptelik", planMonth:"Aylıq", planYear:"Jıllıq",
+    planWeekBlurb:"Imtixan aldı hápte ushın qolaylı: 12 slayd + 3-4 referat + konspektlerdi tayarlawǵa jeteди.",
+    planMonthBlurb:"Búkil oqıw ayı boyı úzliksiz isleń: hár háptede birneshe tapsırma, eksport shekleusiz.",
+    planYearBlurb:"Bir oqıw jılı ushın limit degen nárseni umıtıń — kez-kelgen waqıtta, kez-kelgen sanda jaratıń.",
+    featUnlimited:"120 material/hápte", feat60:"60 material/ay", feat999:"Sheksiz",
+    featAll:"Barlıq qurallar", featExport:"PDF · Word · PPTX", featPriority:"Tez AI juwabı",
+    planCta:"Satıp alıw",
+    purchased:"Aktiv tarif: ", notVip:"Siz VIP emessiz",
+    aiProblem:"AI kalit qátesi bolıwı múmkin. Google AI Studio'dan jańa kalit alıń.",
+    authLogin:"Kiriw", authRegister:"Dizimnen ótiw",
+    fName:"Atıńız", fEmail:"Email", fPass:"Parol",
+    btnLogin:"Kiriw", btnRegister:"Dizimnen ótiw",
+    toRegister:"Akkauntıńız joq pa? ", toLogin:"Akkauntıńız bar ma? ",
+    errInvalid:"Email yamasa parol qáte", errTaken:"Bul email penen dizimnen ótilgen",
+    errFill:"Barlıq maydanlardı толtırıń".replace('толtırıń','tolıqtırıń'),
+    welcome:"Qalam'ǵa xosh kelipsiz!", signOut:"Shıǵıw",
+    regSuccess:"Dizimnen ótiw sátli boldı!"
+  },
+  uz:{
+    kick:"QALAM STUDIYA", hh1:"Qalam'ga <span class='y'>xush kelibsiz</span>",
+    hlead:"AI yordamida konspekt, slayd, referat va infografika yaratamiz.",
+    stat1:"Slayd",stat2:"Konspekt",stat3:"Limit",
+    sectCreate:"Yaratish", sectTools:"Asboblar",
+    c1t:"Slayd",c1s:"AI 12 slayd", c2t:"Konspekt",c2s:"Chuqur tahlil",
+    c3t:"AI Rasm",c3s:"Vizual", c4t:"Referat",c4s:"Akademik",
+    bn1:"Agent",bn2:"Asboblar",bn3:"Tarix",bn4:"Premium",
+    agentTitle:"Qalam siz bilan ishlaydi.", agentSub:"Mavzuni kiriting — AI yaratadi.",
+    topic:"Mavzu yoki topshiriq", topicPh:"Masalan: Fotosintez jarayoni...",
+    createBtn:"✦ AI bilan yaratish",
+    fSlides:"🎞 Prezentatsiya (12 slayd)", fNotes:"📑 Konspekt",
+    fImage:"✺ AI Rasm", fReport:"📄 Referat", fInfo:"📊 Infografika",
+    limitTitle:"BEPUL LIMIT", limitSub:"Har urinish = 1 limit", vipLimit:"Cheksiz limit",
+    loading:"AI o'ylayapti...", wait:"5-10 soniya kuting", done:"slayd yaratildi",
+    error:"XATO", topicEmpty:"Mavzuni yozing", noLimit:"Limitingiz tugadi. Premium bo'limidan tarif sotib oling.",
+    profile:"Profil", plan:"Tarif", limit:"Limit", created:"Yaratilgan",
+    roleAdmin:"ADMIN", roleVip:"VIP", roleUser:"FOYDALANUVCHI",
+    adminBtn:"Admin panel", adminTitle:"Admin Panel", adminSub:"Faqat admin uchun ko'rinadi.",
+    users:"Foydalanuvchilar", logout:"Orqaga",
+    vipPrices:"VIP narxlari", weekly:"Haftalik", monthly:"Oylik", yearly:"Yillik",
+    editPrices:"Narxlarni o'zgartirish", makeVip:"VIP qilish", removeVip:"VIP ni olib tashlash",
+    toolsTitle:"Asboblar", toolsSub:"Har bir vazifa uchun vosita.",
+    tSlides:"Slayd", tSlidesSub:"AI 12 slayd",
+    tNotes:"Konspekt", tNotesSub:"Chuqur", tImage:"AI Rasm", tImageSub:"Vizual",
+    tReport:"Referat", tReportSub:"Akademik", tInfo:"Infografika", tInfoSub:"Vizual",
+    tExport:"Eksport", tExportSub:"PDF · Word · PPTX",
+    historyTitle:"Tarix", historySub:"Oxirgi materiallar.",
+    empty:"Bo'sh", emptyMsg:"Hozircha yo'q",
+    premiumTitle:"Premium", premiumSub:"Bu — pullik tariflar, VIP status emas.",
+    payInfo:"To'lov ma'lumoti", payName:"AJINIYAZ REYMOV",
+    sendCheck:"CHEKNI YUBORISH", sendCheckBtn:"✈ CHEKNI YUBORISH",
+    mTitle:"Qalam PRO", mDesc:"Bu obuna limitingizni oshiradi (VIP status bermaydi).",
+    mPay:"To'lov ma'lumoti", mChek:"CHEKNI YUBORISH", mChekBtn:"✈ CHEKNI YUBORISH",
+    mBtn1:"To'lovni tasdiqlayman", mBtn2:"Bekor qilish",
+    refTitle:"🎁 Do'stlarni taklif qiling", refSub:"Har bir do'st uchun +2 bepul limit",
+    share:"📤 Ulashish", copy:"📋 Nusxa",
+    subscribed:"Tarif faollashtirildi: ", copied:"Nusxa olindi ✓",
+    error_api:"AI xizmatiga ulanib bo'lmadi", error_json:"AI javobini o'qishda xatolik", aiLangName:"o'zbek",
+    exportPDF:"PDF", exportWord:"Word", exportPPTX:"PPTX",
+    vipBanner:"👑 VIP STATUS", vipBannerSub:"Cheksiz limit · Barcha funksiyalar",
+    planWeek:"Haftalik", planMonth:"Oylik", planYear:"Yillik",
+    planWeekBlurb:"Imtihon haftasi uchun qulay: 12 slaydli taqdimot + 3-4 ta referat va konspekt tayyorlashga yetadi.",
+    planMonthBlurb:"Butun o'quv oyi davomida uzluksiz ishlang: har hafta bir nechta topshiriq, eksport cheklovsiz.",
+    planYearBlurb:"Bir o'quv yili uchun limit haqida umuman unuting — istalgan vaqtda, istalgancha yarating.",
+    featUnlimited:"120 material/hafta", feat60:"60 material/oy", feat999:"Cheksiz",
+    featAll:"Barcha asboblar", featExport:"PDF · Word · PPTX", featPriority:"Tez AI javobi",
+    planCta:"Sotib olish",
+    purchased:"Faol tarif: ", notVip:"Siz VIP emassiz",
+    aiProblem:"AI kalitida xatolik bo'lishi mumkin. Google AI Studio'dan yangi kalit oling.",
+    authLogin:"Kirish", authRegister:"Ro'yxatdan o'tish",
+    fName:"Ismingiz", fEmail:"Email", fPass:"Parol",
+    btnLogin:"Kirish", btnRegister:"Ro'yxatdan o'tish",
+    toRegister:"Akkountingiz yo'qmi? ", toLogin:"Akkountingiz bormi? ",
+    errInvalid:"Email yoki parol xato", errTaken:"Bu email bilan allaqachon ro'yxatdan o'tilgan",
+    errFill:"Barcha maydonlarni to'ldiring",
+    welcome:"Qalam'ga xush kelibsiz!", signOut:"Chiqish",
+    regSuccess:"Ro'yxatdan muvaffaqiyatli o'tdingiz!"
+  },
+  en:{
+    kick:"QALAM STUDIO", hh1:"Welcome to <span class='y'>Qalam</span>",
+    hlead:"Create notes, slides, essays and infographics with AI.",
+    stat1:"Slides",stat2:"Notes",stat3:"Limit",
+    sectCreate:"Create", sectTools:"Tools",
+    c1t:"Slides",c1s:"AI 12 slides", c2t:"Notes",c2s:"Deep analysis",
+    c3t:"AI Image",c3s:"Visual", c4t:"Essay",c4s:"Academic",
+    bn1:"Agent",bn2:"Tools",bn3:"History",bn4:"Premium",
+    agentTitle:"Qalam works with you.", agentSub:"Enter a topic — AI creates it.",
+    topic:"Topic or task", topicPh:"Example: Photosynthesis...",
+    createBtn:"✦ Create with AI",
+    fSlides:"🎞 Presentation (12 slides)", fNotes:"📑 Notes",
+    fImage:"✺ AI Image", fReport:"📄 Essay", fInfo:"📊 Infographic",
+    limitTitle:"FREE LIMIT", limitSub:"Each attempt = 1 limit", vipLimit:"Unlimited",
+    loading:"AI is thinking...", wait:"Wait 5-10 seconds", done:"slides created",
+    error:"ERROR", topicEmpty:"Enter a topic", noLimit:"Your limit is used up. Buy a plan under Premium.",
+    profile:"Profile", plan:"Plan", limit:"Limit", created:"Created",
+    roleAdmin:"ADMIN", roleVip:"VIP", roleUser:"USER",
+    adminBtn:"Admin panel", adminTitle:"Admin Panel", adminSub:"Only visible to the admin.",
+    users:"Users", logout:"Back",
+    vipPrices:"VIP prices", weekly:"Weekly", monthly:"Monthly", yearly:"Yearly",
+    editPrices:"Edit prices", makeVip:"Make VIP", removeVip:"Remove VIP",
+    toolsTitle:"Tools", toolsSub:"A tool for every task.",
+    tSlides:"Slides", tSlidesSub:"AI 12 slides",
+    tNotes:"Notes", tNotesSub:"Deep", tImage:"AI Image", tImageSub:"Visual",
+    tReport:"Essay", tReportSub:"Academic", tInfo:"Infographic", tInfoSub:"Visual",
+    tExport:"Export", tExportSub:"PDF · Word · PPTX",
+    historyTitle:"History", historySub:"Recent materials.",
+    empty:"Empty", emptyMsg:"Nothing here yet",
+    premiumTitle:"Premium", premiumSub:"These are paid plans, not VIP status.",
+    payInfo:"Payment details", payName:"AJINIYAZ REYMOV",
+    sendCheck:"SEND RECEIPT", sendCheckBtn:"✈ SEND RECEIPT",
+    mTitle:"Qalam PRO", mDesc:"This subscription increases your limit (it does not grant VIP status).",
+    mPay:"Payment details", mChek:"SEND RECEIPT", mChekBtn:"✈ SEND RECEIPT",
+    mBtn1:"I've paid — activate", mBtn2:"Cancel",
+    refTitle:"🎁 Invite friends", refSub:"+2 free limits per friend",
+    share:"📤 Share", copy:"📋 Copy",
+    subscribed:"Plan activated: ", copied:"Copied ✓",
+    error_api:"Could not reach the AI service", error_json:"Error reading the AI response", aiLangName:"english",
+    exportPDF:"PDF", exportWord:"Word", exportPPTX:"PPTX",
+    vipBanner:"👑 VIP STATUS", vipBannerSub:"Unlimited · All features",
+    planWeek:"Weekly", planMonth:"Monthly", planYear:"Yearly",
+    planWeekBlurb:"Perfect for exam week: enough for a 12-slide deck plus 3-4 essays and study notes.",
+    planMonthBlurb:"Work non-stop through a whole study month: several assignments a week, unlimited exports.",
+    planYearBlurb:"Forget about limits for the whole school year — create as much as you need, whenever you need it.",
+    featUnlimited:"120 items/week", feat60:"60 items/month", feat999:"Unlimited",
+    featAll:"All tools", featExport:"PDF · Word · PPTX", featPriority:"Faster AI response",
+    planCta:"Buy",
+    purchased:"Active plan: ", notVip:"You are not VIP",
+    aiProblem:"The AI key may be invalid. Get a new key from Google AI Studio.",
+    authLogin:"Log in", authRegister:"Register",
+    fName:"Your name", fEmail:"Email", fPass:"Password",
+    btnLogin:"Log in", btnRegister:"Create account",
+    toRegister:"No account? ", toLogin:"Already have an account? ",
+    errInvalid:"Wrong email or password", errTaken:"This email is already registered",
+    errFill:"Fill in all fields",
+    welcome:"Welcome to Qalam!", signOut:"Sign out",
+    regSuccess:"Account created successfully!"
+  },
+  ru:{
+    kick:"QALAM СТУДИЯ", hh1:"Добро пожаловать в <span class='y'>Qalam</span>",
+    hlead:"Создавайте конспекты, слайды, рефераты и инфографику с ИИ.",
+    stat1:"Слайды",stat2:"Конспект",stat3:"Лимит",
+    sectCreate:"Создать", sectTools:"Инструменты",
+    c1t:"Слайды",c1s:"ИИ 12 слайдов", c2t:"Конспект",c2s:"Глубокий анализ",
+    c3t:"AI Картинка",c3s:"Визуал", c4t:"Реферат",c4s:"Академический",
+    bn1:"Агент",bn2:"Инструменты",bn3:"История",bn4:"Премиум",
+    agentTitle:"Qalam работает с вами.", agentSub:"Введите тему — ИИ создаст.",
+    topic:"Тема или задание", topicPh:"Например: Фотосинтез...",
+    createBtn:"✦ Создать с ИИ",
+    fSlides:"🎞 Презентация (12 слайдов)", fNotes:"📑 Конспект",
+    fImage:"✺ AI Картинка", fReport:"📄 Реферат", fInfo:"📊 Инфографика",
+    limitTitle:"БЕСПЛАТНЫЙ ЛИМИТ", limitSub:"Каждая попытка = 1", vipLimit:"Безлимитно",
+    loading:"ИИ думает...", wait:"Подождите 5-10 сек", done:"слайдов создано",
+    error:"ОШИБКА", topicEmpty:"Введите тему", noLimit:"Ваш лимит исчерпан. Купите тариф в разделе «Премиум».",
+    profile:"Профиль", plan:"Тариф", limit:"Лимит", created:"Создано",
+    roleAdmin:"АДМИН", roleVip:"VIP", roleUser:"ПОЛЬЗОВАТЕЛЬ",
+    adminBtn:"Админ панель", adminTitle:"Админ Панель", adminSub:"Видно только администратору.",
+    users:"Пользователи", logout:"Назад",
+    vipPrices:"Цены VIP", weekly:"Недельный", monthly:"Месячный", yearly:"Годовой",
+    editPrices:"Изменить цены", makeVip:"Сделать VIP", removeVip:"Убрать VIP",
+    toolsTitle:"Инструменты", toolsSub:"Для каждой задачи — инструмент.",
+    tSlides:"Слайды", tSlidesSub:"ИИ 12 слайдов",
+    tNotes:"Конспект", tNotesSub:"Глубокий", tImage:"AI Картинка", tImageSub:"Визуал",
+    tReport:"Реферат", tReportSub:"Академический", tInfo:"Инфографика", tInfoSub:"Визуал",
+    tExport:"Экспорт", tExportSub:"PDF · Word · PPTX",
+    historyTitle:"История", historySub:"Последние материалы.",
+    empty:"Пусто", emptyMsg:"Пока нет",
+    premiumTitle:"Премиум", premiumSub:"Это платные тарифы, а не VIP-статус.",
+    payInfo:"Данные для оплаты", payName:"AJINIYAZ REYMOV",
+    sendCheck:"ОТПРАВИТЬ ЧЕК", sendCheckBtn:"✈ ОТПРАВИТЬ ЧЕК",
+    mTitle:"Qalam PRO", mDesc:"Эта подписка увеличивает лимит (VIP-статус не даёт).",
+    mPay:"Данные для оплаты", mChek:"ОТПРАВИТЬ ЧЕК", mChekBtn:"✈ ОТПРАВИТЬ ЧЕК",
+    mBtn1:"Подтверждаю оплату", mBtn2:"Отмена",
+    refTitle:"🎁 Пригласите друзей", refSub:"+2 лимита за друга",
+    share:"📤 Поделиться", copy:"📋 Копировать",
+    subscribed:"Тариф активирован: ", copied:"Скопировано ✓",
+    error_api:"Не удалось связаться с ИИ-сервисом", error_json:"Ошибка чтения ответа ИИ", aiLangName:"русский",
+    exportPDF:"PDF", exportWord:"Word", exportPPTX:"PPTX",
+    vipBanner:"👑 VIP СТАТУС", vipBannerSub:"Безлимитно · Все функции",
+    planWeek:"Недельный", planMonth:"Месячный", planYear:"Годовой",
+    planWeekBlurb:"Удобно на неделю экзаменов: хватит на презентацию из 12 слайдов плюс 3-4 реферата и конспекты.",
+    planMonthBlurb:"Работайте без остановки весь учебный месяц: несколько заданий в неделю, экспорт без ограничений.",
+    planYearBlurb:"Забудьте про лимиты на весь учебный год — создавайте сколько угодно и когда угодно.",
+    featUnlimited:"120 материалов/нед", feat60:"60 материалов/мес", feat999:"Безлимитно",
+    featAll:"Все инструменты", featExport:"PDF · Word · PPTX", featPriority:"Быстрый ответ ИИ",
+    planCta:"Купить",
+    purchased:"Активный тариф: ", notVip:"Вы не VIP",
+    aiProblem:"Возможно, неверный ключ ИИ. Получите новый ключ в Google AI Studio.",
+    authLogin:"Вход", authRegister:"Регистрация",
+    fName:"Ваше имя", fEmail:"Email", fPass:"Пароль",
+    btnLogin:"Войти", btnRegister:"Зарегистрироваться",
+    toRegister:"Нет аккаунта? ", toLogin:"Уже есть аккаунт? ",
+    errInvalid:"Неверный email или пароль", errTaken:"Этот email уже зарегистрирован",
+    errFill:"Заполните все поля",
+    welcome:"Добро пожаловать в Qalam!", signOut:"Выйти",
+    regSuccess:"Регистрация прошла успешно!"
+  }
+};
+ 
+let lang = localStorage.getItem('qalam_lang') || 'kaa';
+function t(k){ return (T[lang] && T[lang][k]) || T.kaa[k] || k; }
+ 
+/* STATE (app data) */
+let state = loadState();
+let curTab = 'agent';
+let pendingPlan = null;
+let pendingPlanKey = null;
+let planName = null;
+let authMode = 'login';
+ 
+function loadState(){
+  try{
+    const r = localStorage.getItem('qalam_state');
+    if(r){
+      const parsed = JSON.parse(r);
+      if(!parsed.users || !parsed.users.length) parsed.users = [ADMIN];
+      // Make sure there is always exactly one admin account, and it's ADMIN.
+      parsed.users = parsed.users.map(u => u.email === ADMIN.email ? Object.assign({}, ADMIN, {credits: u.credits || 9999}) : Object.assign({}, u, {role: u.role === 'admin' ? 'user' : u.role}));
+      if(!parsed.users.find(u => u.email === ADMIN.email)) parsed.users.unshift(ADMIN);
+      return parsed;
+    }
+  }catch(e){}
+  return { history: [], generated: 0, users: [ADMIN], payments: [], vipPrices: {w:'30 000', m:'50 000', y:'100 000'} };
+}
+function saveState(){ try{ localStorage.setItem('qalam_state', JSON.stringify(state)); }catch(e){} }
+ 
+/* SESSION — who is currently logged in on this device */
+let user = null;
+function getSessionId(){ try{ return localStorage.getItem('qalam_session'); }catch(e){ return null; } }
+function setSessionId(id){ try{ localStorage.setItem('qalam_session', id); }catch(e){} }
+function clearSessionId(){ try{ localStorage.removeItem('qalam_session'); }catch(e){} }
+ 
+function findUserByEmail(email){
+  return state.users.find(u => u.email.toLowerCase() === String(email).toLowerCase());
+}
+function saveUserRecord(u){
+  const i = state.users.findIndex(x => x.id === u.id);
+  if(i !== -1) state.users[i] = u; else state.users.push(u);
+  saveState();
+}
+ 
+/* LANG */
+function setLang(l){
+  lang = l;
+  localStorage.setItem('qalam_lang', l);
+  document.querySelectorAll('.lang-btn').forEach(b => b.classList.toggle('active', b.dataset.lang === l));
+  if(user) renderTab(); else renderAuth();
+  applyModalLang();
+}
+ 
+function applyModalLang(){
+  const set = (id, v) => { const e = document.getElementById(id); if(e) e.textContent = v; };
+  set('t_mTitle', t('mTitle'));
+  set('t_mDesc', t('mDesc'));
+  set('t_mPay', t('mPay'));
+  set('t_mChek', t('mChek'));
+  set('t_mChekBtn', t('mChekBtn'));
+  set('t_mBtn1', t('mBtn1'));
+  set('t_mBtn2', t('mBtn2'));
+}
+ 
+function langBarHTML(){
+  const langs = [
+    {code: 'kaa', name: 'QARAQALPAQ'},
+    {code: 'uz', name: "O'ZBEK"},
+    {code: 'en', name: 'ENGLISH'},
+    {code: 'ru', name: 'РУССКИЙ'}
+  ];
+  return '<div class="langbar">' + langs.map(l =>
+    '<button class="lang-btn' + (l.code === lang ? ' active' : '') + '" data-lang="' + l.code + '" onclick="setLang(\'' + l.code + '\')">' + l.name + '</button>'
+  ).join('') + '</div>';
+}
+ 
+/* ═══════ AUTH SCREENS (login / register) ═══════ */
+function renderAuth(mode){
+  if(mode) authMode = mode;
+  document.getElementById('bnav').style.display = 'none';
+  document.getElementById('profileBtn').style.display = 'none';
+  document.getElementById('chip').textContent = '';
+ 
+  const isLogin = authMode === 'login';
+  document.getElementById('ws').innerHTML =
+    langBarHTML() +
+    '<div class="hero">' +
+    '<div class="hero-kick">' + t('kick') + '</div>' +
+    '<h1>' + t('hh1') + '</h1>' +
+    '<p>' + t('hlead') + '</p>' +
+    '</div>' +
+    '<div class="acard">' +
+    '<div class="ahero"><div class="aorbit">✦</div><div><b>' + t('welcome') + '</b><small>Qalam AI</small></div></div>' +
+    '<div class="authtabs">' +
+    '<button class="' + (isLogin ? 'active' : '') + '" onclick="renderAuth(\'login\')">' + t('authLogin') + '</button>' +
+    '<button class="' + (!isLogin ? 'active' : '') + '" onclick="renderAuth(\'register\')">' + t('authRegister') + '</button>' +
+    '</div>' +
+    (isLogin ?
+      ('<label>' + t('fEmail') + '</label><input type="email" id="authEmail" placeholder="you@email.com">' +
+       '<label style="margin-top:10px">' + t('fPass') + '</label><input type="password" id="authPass" placeholder="••••••••">' +
+       '<button class="arun" onclick="doLogin()">' + t('btnLogin') + '</button>')
+      :
+      ('<label>' + t('fName') + '</label><input type="text" id="regName" placeholder="' + t('fName') + '">' +
+       '<label style="margin-top:10px">' + t('fEmail') + '</label><input type="email" id="regEmail" placeholder="you@email.com">' +
+       '<label style="margin-top:10px">' + t('fPass') + '</label><input type="password" id="regPass" placeholder="••••••••">' +
+       '<button class="arun" onclick="doRegister()">' + t('btnRegister') + '</button>')
+    ) +
+    '<div class="autherr" id="authErr"></div>' +
+    '<div class="authswitch">' +
+    (isLogin ? t('toRegister') + '<b onclick="renderAuth(\'register\')">' + t('authRegister') + '</b>'
+              : t('toLogin') + '<b onclick="renderAuth(\'login\')">' + t('authLogin') + '</b>') +
+    '</div>' +
+    '</div>';
+}
+ 
+function showAuthErr(msg){
+  const e = document.getElementById('authErr');
+  if(!e) return;
+  e.textContent = msg;
+  e.classList.add('show');
+}
+ 
+/* Best-effort device label from the browser's user-agent. This can ONLY see
+   logins that happen on THIS device/browser's own storage — there is no
+   server, so a login on someone else's phone is invisible here. It's shown
+   in the admin panel with that caveat spelled out, not as a real security
+   guarantee. */
+function deviceLabel(){
+  const ua = navigator.userAgent || '';
+  let os = 'Noma\'lum qurılma';
+  if(/iphone/i.test(ua)) os = 'iPhone';
+  else if(/ipad/i.test(ua)) os = 'iPad';
+  else if(/android/i.test(ua)){
+    const m = ua.match(/;\s*([^;)]+)\s+Build/);
+    os = m ? ('Android — ' + m[1].trim()) : 'Android';
+  }
+  else if(/windows/i.test(ua)) os = 'Windows PC';
+  else if(/macintosh/i.test(ua)) os = 'Mac';
+  else if(/linux/i.test(ua)) os = 'Linux';
+  let browser = '';
+  if(/chrome/i.test(ua) && !/edg/i.test(ua)) browser = 'Chrome';
+  else if(/safari/i.test(ua) && !/chrome/i.test(ua)) browser = 'Safari';
+  else if(/firefox/i.test(ua)) browser = 'Firefox';
+  else if(/edg/i.test(ua)) browser = 'Edge';
+  return os + (browser ? (' · ' + browser) : '');
+}
+function logDevice(u){
+  if(!u.devices) u.devices = [];
+  u.devices.unshift({ label: deviceLabel(), time: new Date().toLocaleString('uz-UZ') });
+  u.devices = u.devices.slice(0, 5);
+}
+ 
+function doLogin(){
+  const email = (document.getElementById('authEmail').value || '').trim();
+  const pass = document.getElementById('authPass').value || '';
+  if(!email || !pass){ showAuthErr(t('errFill')); return; }
+  const found = findUserByEmail(email);
+  if(!found || found.pass !== pass){ showAuthErr(t('errInvalid')); return; }
+  logDevice(found);
+  saveUserRecord(found);
+  user = found;
+  setSessionId(found.id);
+  curTab = 'agent';
+  enterApp();
+  toast(t('welcome'));
+}
+ 
+function doRegister(){
+  const name = (document.getElementById('regName').value || '').trim();
+  const email = (document.getElementById('regEmail').value || '').trim();
+  const pass = document.getElementById('regPass').value || '';
+  if(!name || !email || !pass){ showAuthErr(t('errFill')); return; }
+  if(findUserByEmail(email)){ showAuthErr(t('errTaken')); return; }
+  const newUser = {
+    id: 'U-' + Date.now().toString(36) + Math.random().toString(36).slice(2,6),
+    name, email, pass,
+    role: 'user',      // only the fixed ADMIN account above can ever be 'admin'
+    vip: false,
+    plan: 'Free', planName: '',
+    credits: FREE_CREDITS,
+    refCode: 'U' + Math.random().toString(36).slice(2,6).toUpperCase(),
+    createdText: new Date().toLocaleString('uz-UZ'),
+    devices: [{ label: deviceLabel(), time: new Date().toLocaleString('uz-UZ') }]
+  };
+  state.users.push(newUser);
+  saveState();
+  user = newUser;
+  setSessionId(newUser.id);
+  curTab = 'agent';
+  enterApp();
+  toast(t('regSuccess'));
+  confetti();
+}
+ 
+function signOut(){
+  clearSessionId();
+  user = null;
+  authMode = 'login';
+  renderAuth();
+}
+ 
+function enterApp(){
+  document.getElementById('bnav').style.display = 'flex';
+  document.getElementById('profileBtn').style.display = 'grid';
+  renderTab();
+}
+ 
+/* VIP BANNER — faqat VIP/admin bolsa */
+function vipBannerHTML(){
+  if(!user || !user.vip) return '';
+  return '<div class="vip-banner">' +
+    '<div class="vip-banner-in">' +
+    '<div class="vip-crown">👑</div>' +
+    '<div style="flex:1">' +
+    '<b>' + t('vipBanner') + '</b>' +
+    '<small>' + t('vipBannerSub') + '</small>' +
+    '</div>' +
+    '<div style="font:900 22px Sora;color:#3d2b00">∞</div>' +
+    '</div></div>';
+}
+ 
+/* ═══════ AGENT ═══════ */
+function renderAgent(){
+  if(!user) return renderAuth();
+  const c = user.vip ? '∞' : (user.credits || 0);
+ 
+  document.getElementById('ws').innerHTML =
+    vipBannerHTML() +
+    langBarHTML() +
+    '<div class="hero">' +
+    '<div class="hero-kick">' + t('kick') + '</div>' +
+    '<h1>' + t('hh1') + '</h1>' +
+    '<p>' + t('hlead') + '</p>' +
+    '<div class="hero-stats">' +
+    '<div class="hs"><b>' + state.generated + '</b><span>' + t('stat1') + '</span></div>' +
+    '<div class="hs"><b>' + c + '</b><span>' + t('stat3') + '</span></div>' +
+    '<div class="hs"><b>' + state.history.length + '</b><span>' + t('stat2') + '</span></div>' +
+    '</div></div>' +
+ 
+    '<div class="sect-title">' + t('sectCreate') + '</div>' +
+    '<div class="cards">' +
+    '<div class="card" onclick="quick(\'slides\')"><div class="card-ic">▣</div><b>' + t('c1t') + '</b><small>' + t('c1s') + '</small></div>' +
+    '<div class="card c1" onclick="quick(\'notes\')"><div class="card-ic">≋</div><b>' + t('c2t') + '</b><small>' + t('c2s') + '</small></div>' +
+    '<div class="card c2" onclick="quick(\'image\')"><div class="card-ic">✺</div><b>' + t('c3t') + '</b><small>' + t('c3s') + '</small></div>' +
+    '<div class="card c3" onclick="quick(\'report\')"><div class="card-ic">▤</div><b>' + t('c4t') + '</b><small>' + t('c4s') + '</small></div>' +
+    '</div>' +
+ 
+    '<div class="acard">' +
+    '<div class="ahero"><div class="aorbit">✦</div><div><b>AI Agent</b><small>Gemini</small></div></div>' +
+    '<h3>' + t('agentTitle') + '</h3>' +
+    '<p class="wss">' + t('agentSub') + '</p>' +
+    '<label>' + t('topic') + '</label>' +
+    '<textarea id="prompt" placeholder="' + t('topicPh') + '"></textarea>' +
+    '<select id="format">' +
+    '<option value="slides">' + t('fSlides') + '</option>' +
+    '<option value="notes">' + t('fNotes') + '</option>' +
+    '<option value="image">' + t('fImage') + '</option>' +
+    '<option value="report">' + t('fReport') + '</option>' +
+    '<option value="info">' + t('fInfo') + '</option>' +
+    '</select>' +
+    '<button class="arun" onclick="runAgent()">' + t('createBtn') + '</button>' +
+    '</div>' +
+ 
+    '<div class="cbar" id="acbar"></div>' +
+ 
+    '<div class="refbox">' +
+    '<b>' + t('refTitle') + '</b>' +
+    '<div class="chint">' + t('refSub') + '</div>' +
+    '<div class="reflink">qalam.app/?ref=' + esc(user.refCode || user.id) + '</div>' +
+    '<div class="refbtns">' +
+    '<button class="sh" onclick="shareRef()">' + t('share') + '</button>' +
+    '<button onclick="copyRef()">' + t('copy') + '</button>' +
+    '</div></div>' +
+ 
+    '<div id="result"></div>';
+ 
+  renderAcbar();
+  updateChip();
+}
+ 
+function renderAcbar(){
+  const el = document.getElementById('acbar');
+  if(!el || !user) return;
+  if(user.vip){
+    const label = user.role === 'admin' ? '👑 VIP · ADMIN' : '👑 VIP';
+    el.innerHTML = '<div class="crow"><div><b>' + label + '</b><div class="chint">' + t('vipLimit') + '</div></div><div class="cnum">∞</div></div><div class="ctrack"><div class="cfill" style="width:100%"></div></div>';
+  } else {
+    const pct = Math.max(0, Math.min(100, Math.round((user.credits / FREE_CREDITS) * 100)));
+    el.innerHTML = '<div class="crow"><div><b>' + t('limitTitle') + '</b><div class="chint">' + t('limitSub') + '</div></div><div class="cnum">' + user.credits + '</div></div><div class="ctrack"><div class="cfill" style="width:' + pct + '%"></div></div>';
+  }
+}
+ 
+function updateChip(){
+  const chip = document.getElementById('chip');
+  if(!chip || !user) return;
+  const roleLabel = user.role === 'admin' ? t('roleAdmin') : (user.vip ? t('roleVip') : t('roleUser'));
+  chip.textContent = roleLabel + ' · ' + (user.vip ? '∞' : user.credits);
+  chip.classList.toggle('vip', !!user.vip);
+}
+ 
+/* REFERRAL */
+function shareRef(){
+  const link = 'https://qalam.app/?ref=' + encodeURIComponent(user.refCode || user.id);
+  const text = 'Qalam — AI. ' + link;
+  if(navigator.share){ navigator.share({title:'Qalam', text}).catch(()=>{}); }
+  else window.open('https://t.me/share/url?url=' + encodeURIComponent(link) + '&text=' + encodeURIComponent(text), '_blank');
+}
+function copyRef(){
+  const link = 'https://qalam.app/?ref=' + encodeURIComponent(user.refCode || user.id);
+  if(navigator.clipboard) navigator.clipboard.writeText(link).then(()=>toast(t('copied'))).catch(()=>toast(link));
+  else toast(link);
+}
+ 
+/* AI — text/JSON generation */
+async function callGemini(prompt, jsonMode){
+  let lastError = null;
+  const key = getApiKey();
+  for(const model of GEMINI_MODELS){
+    const url = GEMINI_BASE + model + ':generateContent?key=' + key;
+    try{
+      const body = {
+        contents: [{parts: [{text: prompt}]}],
+        generationConfig: { temperature: 0.95, topK: 40, topP: 0.95, maxOutputTokens: 8192 }
+      };
+      if(jsonMode) body.generationConfig.responseMimeType = 'application/json';
+      const res = await fetch(url, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body) });
+      const data = await res.json();
+      if(!res.ok){ lastError = data.error ? data.error.message : ('HTTP ' + res.status); continue; }
+      if(!data.candidates || !data.candidates[0]){ lastError = 'Empty response'; continue; }
+      return data.candidates[0].content.parts[0].text;
+    }catch(err){ lastError = err.message; }
+  }
+  throw new Error(lastError || t('error_api'));
+}
+ 
+/* AI — REAL image generation (Gemini "Nano Banana" image models).
+   Returns {mimeType, base64} of an actual generated picture, not a placeholder. */
+async function callGeminiImage(prompt){
+  let lastError = null;
+  const key = getApiKey();
+  for(const model of GEMINI_IMAGE_MODELS){
+    const url = GEMINI_BASE + model + ':generateContent?key=' + key;
+    try{
+      const body = { contents: [{ parts: [{ text: prompt }] }] };
+      const res = await fetch(url, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body) });
+      const data = await res.json();
+      if(!res.ok){ lastError = data.error ? data.error.message : ('HTTP ' + res.status); continue; }
+      const parts = data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts;
+      if(!parts){ lastError = 'Empty response'; continue; }
+      const imgPart = parts.find(p => p.inlineData || p.inline_data);
+      if(!imgPart){ lastError = 'No image in response'; continue; }
+      const inline = imgPart.inlineData || imgPart.inline_data;
+      return { mimeType: inline.mimeType || inline.mime_type || 'image/png', base64: inline.data };
+    }catch(err){ lastError = err.message; }
+  }
+  throw new Error(lastError || t('error_api'));
+}
+ 
+async function runAgent(){
+  if(!user) return renderAuth();
+  const p = document.getElementById('prompt').value.trim();
+  const f = document.getElementById('format').value;
+  if(!p){ toast(t('topicEmpty')); return; }
+  if(!user.vip && user.credits <= 0){ toast(t('noLimit')); return; }
+ 
+  const r = document.getElementById('result');
+  r.innerHTML = '<div class="slides"><div class="ai-loading"><div class="ai-orb"><div class="ai-inner">✦</div></div><b>' + t('loading') + '</b><small>' + t('wait') + '</small><div class="dots"><span></span><span></span><span></span></div></div></div>';
+ 
+  try{
+    let html = '';
+    let exportHtml = '';
+    if(f === 'slides'){
+      const s = await makeSlides(p);
+      lastGenerated = {format:'slides', topic:p, slides:s.slides};
+      exportHtml = exportRowHTML();
+      html = '<div class="slides"><div class="notice"><b>✓ ' + s.count + ' ' + t('done') + '</b></div><div class="sgrid">' + s.html + '</div>' + exportHtml + '</div>';
+    } else if(f === 'image'){
+      const img = await makeImage(p);
+      lastGenerated = {format:'image', topic:p, title:img.title, description:img.description, imageDataUrl:img.dataUrl};
+      exportHtml = exportRowHTML();
+      html = img.html + exportHtml;
+    } else {
+      const txt = await makeText(p, f);
+      lastGenerated = {format:f, topic:p, text:txt};
+      exportHtml = exportRowHTML();
+      html = '<div class="rbox">QALAM AI\n\n' + txt + '</div>' + exportHtml;
+    }
+    r.innerHTML = html;
+ 
+    state.generated++;
+    state.history.unshift({format: f, prompt: p, time: new Date().toLocaleString('uz-UZ')});
+    if(!user.vip){ user.credits = Math.max(0, user.credits - 1); saveUserRecord(user); }
+    saveState();
+    updateChip();
+    renderAcbar();
+    confetti();
+    toast('✓');
+  }catch(err){
+    console.error('AI error:', err);
+    r.innerHTML = '<div class="slides"><div class="notice err"><b>⚠ ' + t('error') + ':</b><br>' + esc(err.message) + '<br><br>💡 ' + t('aiProblem') + '</div></div>';
+    toast(t('error'));
+  }
+}
+ 
+/* ═══════ REAL FILE EXPORT (PDF / DOCX / PPTX) ═══════
+   These build genuine, openable files using small client-side libraries
+   loaded from CDN near the end of <body>. Needs an internet connection
+   the first time each library loads (browser caches it after that). */
+let lastGenerated = null;
+ 
+function exportRowHTML(){
+  return '<div class="export-row">' +
+    '<button class="prim" onclick="exportPDF()"><span class="ei">📄</span>' + t('exportPDF') + '</button>' +
+    '<button onclick="exportWordDoc()"><span class="ei">📝</span>' + t('exportWord') + '</button>' +
+    '<button onclick="exportPPTXFile()"><span class="ei">📊</span>' + t('exportPPTX') + '</button>' +
+    '</div>';
+}
+ 
+function fileBaseName(){
+  const topic = (lastGenerated && lastGenerated.topic) || 'material';
+  return 'qalam-' + topic.slice(0,24).replace(/[^\p{L}\p{N}]+/gu,'-').replace(/^-+|-+$/g,'') || 'material';
+}
+ 
+function generatedBodyText(){
+  if(!lastGenerated) return '';
+  if(lastGenerated.format === 'slides') return lastGenerated.slides.map((s,i)=>('SLAYD '+(i+1)+'\n'+(s.title||'')+'\n\n'+(s.body||''))).join('\n\n---\n\n');
+  if(lastGenerated.format === 'image') return (lastGenerated.title||'') + '\n\n' + (lastGenerated.description||'');
+  return lastGenerated.text || '';
+}
+ 
+function downloadBlob(blob, filename){
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1500);
+}
+ 
+/* Real PDF via jsPDF */
+function exportPDF(){
+  if(!lastGenerated){ toast(t('error')); return; }
+  if(!window.jspdf){ toast('PDF library loading, try again in a sec'); return; }
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+  const marginX = 15; let y = 20; const pageW = 180;
+  doc.setFont('helvetica','bold'); doc.setFontSize(16);
+  doc.text('QALAM AI — ' + (lastGenerated.topic || ''), marginX, y, {maxWidth: pageW}); y += 12;
+  doc.setFont('helvetica','normal'); doc.setFontSize(11);
+  const lines = doc.splitTextToSize(generatedBodyText(), pageW);
+  lines.forEach(line => {
+    if(y > 280){ doc.addPage(); y = 20; }
+    doc.text(line, marginX, y); y += 6.5;
+  });
+  if(lastGenerated.format === 'image' && lastGenerated.imageDataUrl){
+    try{ if(y > 180) { doc.addPage(); y = 20; } doc.addImage(lastGenerated.imageDataUrl, 'PNG', marginX, y, 100, 100); }catch(e){}
+  }
+  doc.save(fileBaseName() + '.pdf');
+  toast('PDF ✓');
+}
+ 
+/* Real, valid Word file: Word/LibreOffice open HTML content saved with a
+   .doc extension and the right MIME type — this is a standard, reliable
+   trick (no external Word library needed) and the file opens correctly. */
+function exportWordDoc(){
+  if(!lastGenerated){ toast(t('error')); return; }
+  const bodyText = esc(generatedBodyText()).replace(/\n/g,'<br>');
+  const imgTag = (lastGenerated.format === 'image' && lastGenerated.imageDataUrl) ? ('<p><img src="'+lastGenerated.imageDataUrl+'" width="360"></p>') : '';
+  const html = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">' +
+    '<head><meta charset="utf-8"><title>' + esc(lastGenerated.topic||'Qalam') + '</title></head>' +
+    '<body style="font-family:Calibri,Arial,sans-serif;font-size:14px">' +
+    '<h1>QALAM AI — ' + esc(lastGenerated.topic||'') + '</h1>' + imgTag +
+    '<p>' + bodyText + '</p></body></html>';
+  const blob = new Blob(['\ufeff', html], {type: 'application/msword'});
+  downloadBlob(blob, fileBaseName() + '.doc');
+  toast('Word ✓');
+}
+ 
+/* Real PPTX via PptxGenJS */
+async function exportPPTXFile(){
+  if(!lastGenerated){ toast(t('error')); return; }
+  if(!window.PptxGenJS){ toast('PPTX library loading, try again in a sec'); return; }
+  const pres = new PptxGenJS();
+  if(lastGenerated.format === 'slides'){
+    lastGenerated.slides.forEach((s,i) => {
+      const slide = pres.addSlide();
+      slide.background = { color: i % 2 === 0 ? '20233D' : 'FFF6D8' };
+      slide.addText(s.title || ('Slayd ' + (i+1)), { x:0.5, y:0.4, w:9, h:1, fontSize:26, bold:true, color: i % 2 === 0 ? 'F5D949' : '20233D' });
+      slide.addText(s.body || '', { x:0.5, y:1.6, w:9, h:4.5, fontSize:16, color: i % 2 === 0 ? 'FAF6EC' : '20233D' });
+    });
+  } else {
+    const slide = pres.addSlide();
+    slide.addText(lastGenerated.topic || 'Qalam AI', { x:0.5, y:0.4, w:9, h:1, fontSize:26, bold:true, color:'20233D' });
+    if(lastGenerated.format === 'image' && lastGenerated.imageDataUrl){
+      slide.addImage({ data: lastGenerated.imageDataUrl, x:1, y:1.6, w:5, h:3.5 });
+    } else {
+      slide.addText(generatedBodyText(), { x:0.5, y:1.6, w:9, h:4.5, fontSize:15, color:'20233D' });
+    }
+  }
+  await pres.writeFile({ fileName: fileBaseName() + '.pptx' });
+  toast('PPTX ✓');
+}
+ 
+async function makeSlides(topic){
+  const langName = t('aiLangName');
+  const seed = Math.random().toString(36).slice(2, 10);
+  const prompt = 'Sen Qalam AI. 12 ta NOYOB slayd jarat.\n\nMÁHÁM: ' + langName + ' tilinde jaz!\nSEED: ' + seed + '\nTema: "' + topic + '"\n\nJavob FAQAT JSON:\n{"slides":[{"title":"...","body":"..."}]}\n\nFaqat ' + langName + ' tilinde.';
+  const text = await callGemini(prompt, true);
+  let clean = text.trim().replace(/^```json\s*/i, '').replace(/^```\s*/i, '').replace(/```\s*$/i, '').trim();
+  const fb = clean.indexOf('{'), lb = clean.lastIndexOf('}');
+  if(fb !== -1 && lb !== -1) clean = clean.substring(fb, lb + 1);
+  let res;
+  try{ res = JSON.parse(clean); }catch(e){ throw new Error(t('error_json')); }
+  if(!res.slides) throw new Error('Slides not found');
+  const html = res.slides.map((s, i) => '<div class="slide"><span class="sn">SLAYD ' + (i+1) + ' / ' + res.slides.length + '</span><h3>' + esc(s.title||'') + '</h3><p>' + esc(s.body||'') + '</p></div>').join('');
+  return {html, count: res.slides.length, slides: res.slides};
+}
+ 
+async function makeText(topic, format){
+  const langName = t('aiLangName');
+  let prompt = '';
+  if(format === 'notes'){
+    prompt = 'Sen Qalam AI. "' + topic + '" temasına TEREN KONSPEKT jaz ' + langName + ' tilinde.\n\nTuzılıs:\n📌 KIRISIW\n🔑 TIYAGI TÚSINIKLER\n📖 TIYAGI BÓLIM\n💡 MÁHÁM FAKTLER\n✅ JUWMAQ\n📝 ESLEP QALIW\n\nFaqat ' + langName + ' tilinde!';
+  } else if(format === 'report'){
+    prompt = 'Sen Qalam AI. "' + topic + '" temasına REFERAT jaz ' + langName + ' tilinde.\n\nTuzılıs:\n1. KIRISIW\n2. TIYAGI BÓLIM\n3. JUWMAQ\n4. ÁDEBIYATLAR\n\nFaqat ' + langName + ' tilinde!';
+  } else {
+    prompt = 'Sen Qalam AI. "' + topic + '" temasına INFOGRAFIKA teksti jaz ' + langName + ' tilinde.\n\nFormat:\n📊 SARLAVHA\n📈 SANLAR\n🔵 BLOK 1\n🟢 BLOK 2\n🟡 BLOK 3\n🎯 JUWMAQ\n\nFaqat ' + langName + ' tilinde!';
+  }
+  return await callGemini(prompt, false);
+}
+ 
+/* Now generates a REAL AI picture (Gemini image model), not a placeholder
+   shape. Falls back to a simple graphic only if the image model fails. */
+async function makeImage(topic){
+  const langName = t('aiLangName');
+  let dataUrl = null, title = topic, description = '';
+  try{
+    const img = await callGeminiImage('A clear, educational illustration about: ' + topic + '. Clean, colorful, textbook style, no watermark, no text overlay.');
+    dataUrl = 'data:' + img.mimeType + ';base64,' + img.base64;
+  }catch(e){
+    console.error('Image gen failed, using fallback graphic:', e);
+  }
+  try{
+    const capPrompt = 'Sen Qalam AI. "' + topic + '" temasına qısqa súwret dizbesi.\n\nTIL: ' + langName + '\n\nJavob FAQAT JSON:\n{"title":"...","description":"..."}\n\nFaqat ' + langName + '.';
+    const text = await callGemini(capPrompt, true);
+    let clean = text.trim().replace(/^```json\s*/i,'').replace(/^```\s*/i,'').replace(/```\s*$/i,'').trim();
+    const fb = clean.indexOf('{'), lb = clean.lastIndexOf('}');
+    if(fb !== -1 && lb !== -1) clean = clean.substring(fb, lb + 1);
+    const res = JSON.parse(clean);
+    title = res.title || topic; description = res.description || '';
+  }catch(e){}
+ 
+  let visual;
+  if(dataUrl){
+    visual = '<img src="' + dataUrl + '" style="width:100%;height:auto;border-radius:18px;display:block" alt="' + esc(title) + '">';
+  } else {
+    visual = '<svg viewBox="0 0 400 300" style="width:100%;height:auto;border-radius:18px;background:#F5D94920"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#F5D949"/><stop offset="100%" stop-color="#FF6A55"/></linearGradient></defs><circle cx="100" cy="80" r="60" fill="url(#g)" opacity="0.7"/><circle cx="320" cy="220" r="80" fill="#F5D949" opacity="0.5"/><rect x="150" y="100" width="120" height="120" rx="20" fill="#20233D" opacity="0.85"/><text x="210" y="180" font-size="60" text-anchor="middle" fill="#F5D949">🎨</text></svg>';
+  }
+  const html = '<div class="slides"><div class="notice"><b>✓ AI Súwret</b></div><div style="padding:14px;border-radius:18px;background:rgba(255,253,247,.95)"><div style="font:900 18px Sora;margin-bottom:12px">' + esc(title) + '</div>' + visual + '<div style="margin-top:14px;font-size:13px;color:var(--soft);line-height:1.6">' + esc(description) + '</div></div></div>';
+  return { html, title, description, dataUrl };
+}
+ 
+function esc(v){ return String(v||'').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m])); }
+ 
+/* TABS */
+function renderTab(){
+  if(!user) return renderAuth();
+  if(curTab === 'agent') renderAgent();
+  else if(curTab === 'tools') renderTools();
+  else if(curTab === 'history') renderHistory();
+  else if(curTab === 'premium') renderPremium();
+  syncNav();
+}
+function tab(x){ curTab = x; renderTab(); }
+function syncNav(){ document.querySelectorAll('.bnav-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === curTab)); }
+ 
+/* TOOLS */
+function renderTools(){
+  document.getElementById('ws').innerHTML =
+    vipBannerHTML() +
+    langBarHTML() +
+    '<h2 class="wst">' + t('toolsTitle') + '</h2><p class="wss">' + t('toolsSub') + '</p>' +
+    '<div class="tools">' +
+    '<div class="tile t1" onclick="quick(\'slides\')"><div class="tani">▣</div><b>' + t('tSlides') + '</b><small>' + t('tSlidesSub') + '</small></div>' +
+    '<div class="tile t2" onclick="quick(\'notes\')"><div class="tani">≋</div><b>' + t('tNotes') + '</b><small>' + t('tNotesSub') + '</small></div>' +
+    '<div class="tile t3" onclick="quick(\'image\')"><div class="tani">✺</div><b>' + t('tImage') + '</b><small>' + t('tImageSub') + '</small></div>' +
+    '<div class="tile t4" onclick="quick(\'report\')"><div class="tani">▤</div><b>' + t('tReport') + '</b><small>' + t('tReportSub') + '</small></div>' +
+    '<div class="tile t5" onclick="quick(\'info\')"><div class="tani">◈</div><b>' + t('tInfo') + '</b><small>' + t('tInfoSub') + '</small></div>' +
+    '<div class="tile t6" onclick="toast(\'PDF · Word · PPTX\')"><div class="tani">📤</div><b>' + t('tExport') + '</b><small>' + t('tExportSub') + '</small></div>' +
+    '</div>';
+}
+function quick(f){ curTab = 'agent'; renderAgent(); setTimeout(() => { const s = document.getElementById('format'); if(s) s.value = f; const p = document.getElementById('prompt'); if(p){ p.focus(); p.scrollIntoView({behavior:'smooth', block:'center'}); } }, 100); }
+ 
+/* HISTORY */
+function renderHistory(){
+  const h = state.history;
+  document.getElementById('ws').innerHTML =
+    vipBannerHTML() +
+    langBarHTML() +
+    '<h2 class="wst">' + t('historyTitle') + '</h2><p class="wss">' + t('historySub') + '</p>' +
+    (h.length ? h.map(x => '<div class="sc" style="margin-top:10px"><span>' + esc(x.format) + '</span><b style="font-size:13px;font-family:Inter">' + esc(x.prompt) + '</b><div class="chint">' + esc(x.time) + '</div></div>').join('') : '<div class="sc"><span>' + t('empty') + '</span><b style="font-size:15px">' + t('emptyMsg') + '</b></div>');
+}
+ 
+/* PREMIUM — paid plans (NOT the same thing as admin-granted VIP) */
+function renderPremium(){
+  document.getElementById('ws').innerHTML =
+    vipBannerHTML() +
+    langBarHTML() +
+    '<h2 class="wst">' + t('premiumTitle') + '</h2><p class="wss">' + t('premiumSub') + '</p>' +
+ 
+    '<div class="plan">' +
+    '<div class="plan-name">◆ ' + t('planWeek') + '</div>' +
+    '<div class="plan-price">' + state.vipPrices.w + '</div>' +
+    '<div class="plan-period">1 hápte · sóm</div>' +
+    '<p style="font-size:12px;color:var(--soft);line-height:1.5;margin:10px 0 0">' + t('planWeekBlurb') + '</p>' +
+    '<div class="plan-features" style="margin-top:12px">' +
+    '<div class="pf">' + t('featUnlimited') + '</div>' +
+    '<div class="pf">' + t('featAll') + '</div>' +
+    '<div class="pf">' + t('featExport') + '</div>' +
+    '<div class="pf no">' + t('featPriority') + '</div>' +
+    '</div>' +
+    '<button class="plan-cta" onclick="openModal(\'week\',\'' + state.vipPrices.w + '\',\'planWeek\')">' + t('planCta') + '</button>' +
+    '</div>' +
+ 
+    '<div class="plan featured">' +
+    '<div class="plan-name">◆ ' + t('planMonth') + '</div>' +
+    '<div class="plan-price">' + state.vipPrices.m + '</div>' +
+    '<div class="plan-period">1 ay · sóm</div>' +
+    '<p style="font-size:12px;color:var(--soft);line-height:1.5;margin:10px 0 0">' + t('planMonthBlurb') + '</p>' +
+    '<div class="plan-features" style="margin-top:12px">' +
+    '<div class="pf">' + t('feat60') + '</div>' +
+    '<div class="pf">' + t('featAll') + '</div>' +
+    '<div class="pf">' + t('featExport') + '</div>' +
+    '<div class="pf">' + t('featPriority') + '</div>' +
+    '</div>' +
+    '<button class="plan-cta" onclick="openModal(\'month\',\'' + state.vipPrices.m + '\',\'planMonth\')">' + t('planCta') + '</button>' +
+    '</div>' +
+ 
+    '<div class="plan">' +
+    '<div class="plan-name">◆ ' + t('planYear') + '</div>' +
+    '<div class="plan-price">' + state.vipPrices.y + '</div>' +
+    '<div class="plan-period">1 jıl · sóm</div>' +
+    '<p style="font-size:12px;color:var(--soft);line-height:1.5;margin:10px 0 0">' + t('planYearBlurb') + '</p>' +
+    '<div class="plan-features" style="margin-top:12px">' +
+    '<div class="pf">' + t('feat999') + '</div>' +
+    '<div class="pf">' + t('featAll') + '</div>' +
+    '<div class="pf">' + t('featExport') + '</div>' +
+    '<div class="pf">' + t('featPriority') + '</div>' +
+    '</div>' +
+    '<button class="plan-cta" onclick="openModal(\'year\',\'' + state.vipPrices.y + '\',\'planYear\')">' + t('planCta') + '</button>' +
+    '</div>' +
+ 
+    '<div class="sc" style="margin-top:16px">' +
+    '<b style="font-size:11px;color:var(--soft);letter-spacing:.08em;text-transform:uppercase">' + t('payInfo') + '</b>' +
+    '<b style="font:900 20px Sora;display:block;margin:6px 0">4067 0700 0933 9081</b>' +
+    '<div style="font-weight:800;font-size:13px">' + t('payName') + '</div>' +
+    '<div style="display:flex;align-items:center;gap:10px;margin-top:12px;padding:12px;border:1px solid var(--line);border-radius:14px;background:#E4F3F0">' +
+    '<div style="width:38px;height:38px;background:#229ED9;color:#fff;border-radius:11px;display:grid;place-items:center;font-size:19px">✈</div>' +
+    '<div><b style="font-size:12px">' + t('sendCheck') + '</b><div style="font-size:10.5px;color:var(--soft)">' + BOT + '</div></div>' +
+    '</div>' +
+    '<a href="' + BOT_URL + '" target="_blank" style="display:inline-block;margin-top:12px;padding:13px 20px;background:var(--ink);color:var(--paper);border-radius:999px;font:800 12.5px Sora;text-decoration:none">' + t('sendCheckBtn') + ' → ' + BOT + '</a>' +
+    '</div>';
+}
+ 
+/* PAYMENT MODAL — buying a plan increases the free-limit; it never sets vip/admin */
+const PLAN_CREDITS = { planWeek: 120, planMonth: 60, planYear: 99999 };
+ 
+function openModal(plan, price, planKey){
+  pendingPlan = plan;
+  pendingPlanKey = planKey;
+  planName = t(planKey);
+  document.getElementById('t_mTitle').textContent = planName + ' — ' + price + ' sóm';
+  document.getElementById('t_mDesc').textContent = t('mDesc');
+  document.getElementById('modal').classList.add('show');
+}
+function closeModal(){ document.getElementById('modal').classList.remove('show'); }
+function confirmPay(){
+  if(!user) return;
+  user.plan = pendingPlan;
+  user.planName = planName;
+  user.subscribedAt = new Date().toLocaleString('uz-UZ');
+  if(!user.vip){ user.credits = PLAN_CREDITS[pendingPlanKey] || user.credits; }
+  saveUserRecord(user);
+  closeModal();
+  toast(t('subscribed') + planName);
+  confetti();
+  renderTab();
+}
+ 
+/* PROFILE */
+function showProfile(){
+  if(!user) return renderAuth();
+  const badge = user.role === 'admin' ? t('roleAdmin') : (user.vip ? t('roleVip') : t('roleUser'));
+  const initial = (user.name || '?').slice(0,1).toUpperCase();
+  const isVip = user.vip;
+ 
+  document.getElementById('ws').innerHTML =
+    langBarHTML() +
+    '<div class="ph' + (isVip ? ' vip' : '') + '">' +
+    '<div class="pa">' +
+    (isVip ? '<span class="cr">👑</span>' : '') +
+    '<span class="in">' + initial + '</span></div>' +
+    '<div class="pn">' + esc(user.name) + '</div>' +
+    '<div class="pr">' + badge + (user.planName ? ' · ' + user.planName : '') + '</div>' +
+    '<div class="pe">' + esc(user.email) + '</div></div>' +
+    '<div class="sgrid2">' +
+    '<div class="sc"><span>' + t('plan') + '</span><b>' + (user.planName || 'Free') + '</b></div>' +
+    '<div class="sc"><span>' + t('limit') + '</span><b>' + (isVip ? '∞' : user.credits) + '</b></div>' +
+    '<div class="sc"><span>' + t('created') + '</span><b>' + state.generated + '</b></div>' +
+    '<div class="sc"><span>ID</span><b style="font-size:11px;font-family:monospace">' + esc(user.id) + '</b></div>' +
+    '</div>' +
+    (user.role === 'admin' ? '<button class="ghost" style="background:#20233D;color:#FAF6EC" onclick="showAdmin()">🔐 ' + t('adminBtn') + '</button>' : '') +
+    '<button class="ghost" onclick="goBack()">← ' + t('logout') + '</button>' +
+    '<button class="ghost" style="border-color:#c0392b;color:#c0392b" onclick="signOut()">⏻ ' + t('signOut') + '</button>';
+}
+function goBack(){ curTab = 'agent'; renderTab(); }
+ 
+/* ADMIN — reachable only by the single fixed admin account */
+function showAdmin(){
+  if(!user || user.role !== 'admin'){ toast(t('errInvalid')); goBack(); return; }
+  const users = state.users;
+  const vips = users.filter(u => u.vip);
+  let list = users.map(u => {
+    const a = u.role === 'admin';
+    const bc = a ? '#20233D;color:#F5D949' : (u.vip ? 'linear-gradient(135deg,#FFD700,#D4AF37);color:#3d2b00' : '#E4F3F0;color:#565A78');
+    const bt = a ? '🔐 ADMIN' : (u.vip ? '👑 VIP' : '👤 USER');
+    const devices = u.devices || [];
+    const multi = devices.length > 1 ? ' <span style="color:#c0392b;font-weight:900">⚠ ' + devices.length + ' qurılma</span>' : '';
+    const devicesHtml = devices.length
+      ? '<div style="margin-top:8px;padding:8px 10px;border-radius:10px;background:#fff;border:1px solid var(--line);font-size:10.5px;color:var(--soft)">' +
+        devices.map(d => '📱 ' + esc(d.label) + ' — ' + esc(d.time)).join('<br>') + '</div>'
+      : '';
+    return '<div class="ur"' + (u.vip ? ' style="border-color:#D4AF37;background:linear-gradient(135deg,#fffdf7,#FFF6D8)"' : '') + '>' +
+      '<div class="um"><div class="uav"' + (u.vip ? ' style="background:linear-gradient(135deg,#FFD700,#D4AF37);color:#3d2b00"' : '') + '>' + (a ? '👑' : (u.name||'?')[0].toUpperCase()) + '</div>' +
+      '<div style="flex:1;min-width:0"><b>' + esc(u.name) + multi + '</b><div class="ue">' + esc(u.email) + '</div>' +
+      '<span class="rb" style="background:' + bc + '">' + bt + '</span></div></div>' +
+      '<div class="umeta"><span>' + esc(u.id) + '</span><span>' + t('limit') + ': ' + (u.vip ? '∞' : u.credits) + '</span></div>' +
+      devicesHtml +
+      (a ? '' : '<button class="sbtn ' + (u.vip ? 'no' : 'ok') + '" onclick="toggleVip(\'' + u.id + '\')">' + (u.vip ? '❌ ' + t('removeVip') : '👑 ' + t('makeVip')) + '</button>') +
+      '</div>';
+  }).join('');
+ 
+  document.getElementById('ws').innerHTML =
+    langBarHTML() +
+    '<h2 class="wst">🔐 ' + t('adminTitle') + '</h2><p class="wss">' + t('adminSub') + '</p>' +
+    '<div class="sgrid2">' +
+    '<div class="sc"><span>👥 ' + t('users') + '</span><b>' + users.length + '</b></div>' +
+    '<div class="sc" style="background:#FFF6D8"><span>👑 VIP</span><b>' + vips.length + '</b></div>' +
+    '<div class="sc"><span>⚡ ' + t('created') + '</span><b>' + state.generated + '</b></div>' +
+    '<div class="sc"><span>📊 ' + t('historyTitle') + '</span><b>' + state.history.length + '</b></div>' +
+    '</div>' +
+ 
+    '<h3 style="font:900 15px Sora;margin:22px 0 10px">🔑 API Kalit</h3>' +
+    '<div class="sc">' +
+    '<span>Gemini API kalit</span>' +
+    '<input type="text" id="apiKeyInput" value="' + esc(getApiKey()) + '" style="width:100%;margin-top:8px;padding:10px;border:2px solid var(--line);border-radius:10px;font:600 12px monospace;background:#fffdf7">' +
+    '<button class="sbtn ok" onclick="saveApiKeyFromAdmin()">💾 Saqlaw</button>' +
+    '<div class="chint">Kalitti kod ashpay-aq usı jerden ózgertesiz. Tek usı brauzerde saqlanadı.</div>' +
+    '</div>' +
+ 
+    '<h3 style="font:900 15px Sora;margin:22px 0 10px">👥 ' + t('users') + ' (' + users.length + ')</h3>' +
+    '<div class="sc" style="margin-bottom:10px;background:#FFE3DD"><span style="color:#c0392b">⚠ Máhám eskertiw</span><b style="font-size:11.5px;font-weight:700;color:#7a2318;display:block;margin-top:4px;line-height:1.5">Bul qurılma dizimi tek usı brauzerde/telefonda kirgen jaǵdaylardı kórsetedi. Bul saytta server joq (barlıq maǵlıwmat telefonıńızdıń ózinde saqlanadı), sonlıqtan basqa adam basqa telefonda sizdiń akkauntıńızǵa kirse, bunı bul jerden kóre almaysız. Haqıйqıy kóp-qurılma tekseriwi ushın server (mısalı Firebase) kerek boladı — soraseniz, sonı sazlap beremen.</b></div>' +
+    list +
+    '<button class="ghost" onclick="goBack()">← ' + t('profile') + '</button>';
+}
+function saveApiKeyFromAdmin(){
+  const v = (document.getElementById('apiKeyInput').value || '').trim();
+  if(!v){ toast(t('errFill')); return; }
+  setApiKey(v);
+  toast('API kalit saqlandı ✓');
+}
+function toggleVip(id){
+  if(!user || user.role !== 'admin') return;
+  const u = state.users.find(x => x.id === id);
+  if(!u || u.role === 'admin') return;
+  u.vip = !u.vip;
+  saveState();
+  toast(u.vip ? '👑 ' + u.name : u.name);
+  if(u.vip) confetti();
+  showAdmin();
+}
+ 
+/* UTILS */
+function confetti(){
+  const c = document.createElement('div'); c.className = 'confetti';
+  const cols = ['#F5D949','#FF6A55','#4FB0A5','#20233D','#7a5cc7','#FFD700'];
+  for(let i = 0; i < 30; i++){
+    const s = document.createElement('span');
+    s.style.left = Math.random() * 100 + '%';
+    s.style.background = cols[Math.floor(Math.random() * cols.length)];
+    s.style.animationDelay = (Math.random() * 0.4) + 's';
+    s.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
+    c.appendChild(s);
+  }
+  document.body.appendChild(c);
+  setTimeout(() => c.remove(), 3000);
+}
+let tt;
+function toast(m){
+  const e = document.getElementById('toast');
+  e.textContent = m; e.classList.add('show');
+  clearTimeout(tt); tt = setTimeout(() => e.classList.remove('show'), 2400);
+}
+ 
+/* PWA install support (works on Android + iPhone "Add to Home Screen").
+   manifest.json and sw.js must sit next to this HTML file when you host it. */
+if('serviceWorker' in navigator){
+  window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js').catch(()=>{}); });
+}
+ 
+/* INIT */
+(function init(){
+  console.log('QALAM V26 — Lang:', lang);
+ 
+  document.querySelectorAll('.lang-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.lang === lang);
+  });
+  applyModalLang();
+ 
+  const sid = getSessionId();
+  if(sid){
+    const found = state.users.find(u => u.id === sid);
+    if(found){ user = found; enterApp(); return; }
+  }
+  renderAuth('login');
+  console.log('=== READY (logged out) ===');
+})();
+</script>
+</body>
+</html>
+ 
 
-      "License" shall mean the terms and conditions for use, reproduction,
-      and distribution as defined by Sections 1 through 9 of this document.
 
-      "Licensor" shall mean the copyright owner or entity authorized by
-      the copyright owner that is granting the License.
 
-      "Legal Entity" shall mean the union of the acting entity and all
-      other entities that control, are controlled by, or are under common
-      control with that entity. For the purposes of this definition,
-      "control" means (i) the power, direct or indirect, to cause the
-      direction or management of such entity, whether by contract or
-      otherwise, or (ii) ownership of fifty percent (50%) or more of the
-      outstanding shares, or (iii) beneficial ownership of such entity.
-
-      "You" (or "Your") shall mean an individual or Legal Entity
-      exercising permissions granted by this License.
-
-      "Source" form shall mean the preferred form for making modifications,
-      including but not limited to software source code, documentation
-      source, and configuration files.
-
-      "Object" form shall mean any form resulting from mechanical
-      transformation or translation of a Source form, including but
-      not limited to compiled object code, generated documentation,
-      and conversions to other media types.
-
-      "Work" shall mean the work of authorship, whether in Source or
-      Object form, made available under the License, as indicated by a
-      copyright notice that is included in or attached to the work
-      (an example is provided in the Appendix below).
-
-      "Derivative Works" shall mean any work, whether in Source or Object
-      form, that is based on (or derived from) the Work and for which the
-      editorial revisions, annotations, elaborations, or other modifications
-      represent, as a whole, an original work of authorship. For the purposes
-      of this License, Derivative Works shall not include works that remain
-      separable from, or merely link (or bind by name) to the interfaces of,
-      the Work and Derivative Works thereof.
-
-      "Contribution" shall mean any work of authorship, including
-      the original version of the Work and any modifications or additions
-      to that Work or Derivative Works thereof, that is intentionally
-      submitted to Licensor for inclusion in the Work by the copyright owner
-      or by an individual or Legal Entity authorized to submit on behalf of
-      the copyright owner. For the purposes of this definition, "submitted"
-      means any form of electronic, verbal, or written communication sent
-      to the Licensor or its representatives, including but not limited to
-      communication on electronic mailing lists, source code control systems,
-      and issue tracking systems that are managed by, or on behalf of, the
-      Licensor for the purpose of discussing and improving the Work, but
-      excluding communication that is conspicuously marked or otherwise
-      designated in writing by the copyright owner as "Not a Contribution."
-
-      "Contributor" shall mean Licensor and any individual or Legal Entity
-      on behalf of whom a Contribution has been received by Licensor and
-      subsequently incorporated within the Work.
-
-   2. Grant of Copyright License. Subject to the terms and conditions of
-      this License, each Contributor hereby grants to You a perpetual,
-      worldwide, non-exclusive, no-charge, royalty-free, irrevocable
-      copyright license to reproduce, prepare Derivative Works of,
-      publicly display, publicly perform, sublicense, and distribute the
-      Work and such Derivative Works in Source or Object form.
-
-   3. Grant of Patent License. Subject to the terms and conditions of
-      this License, each Contributor hereby grants to You a perpetual,
-      worldwide, non-exclusive, no-charge, royalty-free, irrevocable
-      (except as stated in this section) patent license to make, have made,
-      use, offer to sell, sell, import, and otherwise transfer the Work,
-      where such license applies only to those patent claims licensable
-      by such Contributor that are necessarily infringed by their
-      Contribution(s) alone or by combination of their Contribution(s)
-      with the Work to which such Contribution(s) was submitted. If You
-      institute patent litigation against any entity (including a
-      cross-claim or counterclaim in a lawsuit) alleging that the Work
-      or a Contribution incorporated within the Work constitutes direct
-      or contributory patent infringement, then any patent licenses
-      granted to You under this License for that Work shall terminate
-      as of the date such litigation is filed.
-
-   4. Redistribution. You may reproduce and distribute copies of the
-      Work or Derivative Works thereof in any medium, with or without
-      modifications, and in Source or Object form, provided that You
-      meet the following conditions:
-
-      (a) You must give any other recipients of the Work or
-          Derivative Works a copy of this License; and
-
-      (b) You must cause any modified files to carry prominent notices
-          stating that You changed the files; and
-
-      (c) You must retain, in the Source form of any Derivative Works
-          that You distribute, all copyright, patent, trademark, and
-          attribution notices from the Source form of the Work,
-          excluding those notices that do not pertain to any part of
-          the Derivative Works; and
-
-      (d) If the Work includes a "NOTICE" text file as part of its
-          distribution, then any Derivative Works that You distribute must
-          include a readable copy of the attribution notices contained
-          within such NOTICE file, excluding those notices that do not
-          pertain to any part of the Derivative Works, in at least one
-          of the following places: within a NOTICE text file distributed
-          as part of the Derivative Works; within the Source form or
-          documentation, if provided along with the Derivative Works; or,
-          within a display generated by the Derivative Works, if and
-          wherever such third-party notices normally appear. The contents
-          of the NOTICE file are for informational purposes only and
-          do not modify the License. You may add Your own attribution
-          notices within Derivative Works that You distribute, alongside
-          or as an addendum to the NOTICE text from the Work, provided
-          that such additional attribution notices cannot be construed
-          as modifying the License.
-
-      You may add Your own copyright statement to Your modifications and
-      may provide additional or different license terms and conditions
-      for use, reproduction, or distribution of Your modifications, or
-      for any such Derivative Works as a whole, provided Your use,
-      reproduction, and distribution of the Work otherwise complies with
-      the conditions stated in this License.
-
-   5. Submission of Contributions. Unless You explicitly state otherwise,
-      any Contribution intentionally submitted for inclusion in the Work
-      by You to the Licensor shall be under the terms and conditions of
-      this License, without any additional terms or conditions.
-      Notwithstanding the above, nothing herein shall supersede or modify
-      the terms of any separate license agreement you may have executed
-      with Licensor regarding such Contributions.
-
-   6. Trademarks. This License does not grant permission to use the trade
-      names, trademarks, service marks, or product names of the Licensor,
-      except as required for reasonable and customary use in describing the
-      origin of the Work and reproducing the content of the NOTICE file.
-
-   7. Disclaimer of Warranty. Unless required by applicable law or
-      agreed to in writing, Licensor provides the Work (and each
-      Contributor provides its Contributions) on an "AS IS" BASIS,
-      WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
-      implied, including, without limitation, any warranties or conditions
-      of TITLE, NON-INFRINGEMENT, MERCHANTABILITY, or FITNESS FOR A
-      PARTICULAR PURPOSE. You are solely responsible for determining the
-      appropriateness of using or redistributing the Work and assume any
-      risks associated with Your exercise of permissions under this License.
-
-   8. Limitation of Liability. In no event and under no legal theory,
-      whether in tort (including negligence), contract, or otherwise,
-      unless required by applicable law (such as deliberate and grossly
-      negligent acts) or agreed to in writing, shall any Contributor be
-      liable to You for damages, including any direct, indirect, special,
-      incidental, or consequential damages of any character arising as a
-      result of this License or out of the use or inability to use the
-      Work (including but not limited to damages for loss of goodwill,
-      work stoppage, computer failure or malfunction, or any and all
-      other commercial damages or losses), even if such Contributor
-      has been advised of the possibility of such damages.
-
-   9. Accepting Warranty or Additional Liability. While redistributing
-      the Work or Derivative Works thereof, You may choose to offer,
-      and charge a fee for, acceptance of support, warranty, indemnity,
-      or other liability obligations and/or rights consistent with this
-      License. However, in accepting such obligations, You may act only
-      on Your own behalf and on Your sole responsibility, not on behalf
-      of any other Contributor, and only if You agree to indemnify,
-      defend, and hold each Contributor harmless for any liability
-      incurred by, or claims asserted against, such Contributor by reason
-      of your accepting any such warranty or additional liability.
-
-   END OF TERMS AND CONDITIONS
-
-   APPENDIX: How to apply the Apache License to your work.
-
-      To apply the Apache License to your work, attach the following
-      boilerplate notice, with the fields enclosed by brackets "[]"
-      replaced with your own identifying information. (Don't include
-      the brackets!)  The text should be enclosed in the appropriate
-      comment syntax for the file format. We also recommend that a
-      file or class name and description of purpose be included on the
-      same "printed page" as the copyright notice for easier
-      identification within third-party archives.
-
-   Copyright [yyyy] [name of copyright owner]
-
-   Licensed under the Apache License, Version 2.0 (the "License");
-   you may not use this file except in compliance with the License.
-   You may obtain a copy of the License at
-
-       http://www.apache.org/licenses/LICENSE-2.0
-
-   Unless required by applicable law or agreed to in writing, software
-   distributed under the License is distributed on an "AS IS" BASIS,
-   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-   See the License for the specific language governing permissions and
-   limitations under the License.
